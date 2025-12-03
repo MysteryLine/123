@@ -13,6 +13,9 @@ const Navbar: React.FC = () => {
 
     useEffect(() => {
         const fetchUser = async () => {
+            // 确保在浏览器环境中才访问 localStorage
+            if (typeof window === 'undefined') return;
+            
             const token = localStorage.getItem('token');
             if (token) {
                 try {

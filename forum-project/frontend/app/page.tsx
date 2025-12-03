@@ -8,6 +8,9 @@ export default function Home() {
   const [username, setUsername] = useState('');
 
   useEffect(() => {
+    // 确保在浏览器环境中才访问 localStorage
+    if (typeof window === 'undefined') return;
+    
     const token = localStorage.getItem('token');
     setIsLoggedIn(!!token);
   }, []);
