@@ -71,22 +71,26 @@ export default function Home() {
               </div>
             </Link>
 
-            {/* 个人资料卡片（占位） */}
-            <div style={{
-              background: '#fff',
-              borderRadius: 12,
-              boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
-              padding: '2rem',
-              textAlign: 'center',
-              minHeight: 200,
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'center'
-            }}>
-              <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>👤</div>
-              <h2 style={{ fontWeight: 700, fontSize: '1.3rem', marginBottom: '0.5rem', color: '#222' }}>我的资料</h2>
-              <p style={{ color: '#666', fontSize: '0.95rem' }}>查看和管理你的个人信息和设置</p>
-            </div>
+            {/* 个人资料卡片 */}
+            <Link href="/profile" style={{ textDecoration: 'none' }}>
+              <div style={{
+                background: '#fff',
+                borderRadius: 12,
+                boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
+                padding: '2rem',
+                textAlign: 'center',
+                transition: 'transform 0.2s, box-shadow 0.2s',
+                cursor: 'pointer',
+                minHeight: 200,
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center'
+              }}>
+                <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>👤</div>
+                <h2 style={{ fontWeight: 700, fontSize: '1.3rem', marginBottom: '0.5rem', color: '#222' }}>我的资料</h2>
+                <p style={{ color: '#666', fontSize: '0.95rem' }}>查看和管理你的个人信息和设置</p>
+              </div>
+            </Link>
           </div>
 
           {/* 登出按钮 */}
