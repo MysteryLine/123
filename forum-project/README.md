@@ -53,6 +53,12 @@ forum-website/
 └── README.md
 ```
 
+## 🌐 在线演示
+
+- **前端地址**: [即将部署](https://vercel.com)
+- **后端 API**: [即将部署](https://render.com)
+- **部署指南**: 查看 [DEPLOYMENT.md](./DEPLOYMENT.md) 了解如何部署到公网
+
 ## 🚀 快速开始
 
 ### 前置要求
