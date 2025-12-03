@@ -1,4 +1,6 @@
 import type { Metadata } from 'next';
+import Navbar from '@/components/Navbar';
+import './globals.css';
 
 export const metadata: Metadata = {
   title: '论坛社区',
@@ -13,6 +15,7 @@ export default function RootLayout({
   return (
     <html lang="zh-CN">
       <body style={{ fontFamily: 'Arial, sans-serif', margin: 0, padding: 0 }}>
+        <Navbar />
         {children}
       </body>
     </html>

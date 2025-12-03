@@ -85,3 +85,43 @@ export const deleteComment = async (req, res) => {
     });
   }
 };
+
+// 点赞/取消点赞评论
+export const toggleLikeComment = async (req, res) => {
+  try {
+    const comment = await Comment.findById(req.params.commentId);
+
+    if (!comment) {
+      return res.status(404).json({
+        success: false,
+        message: '评论不存在',
+      });
+    }
+
+    const userId = req.userId;
+    const likeIndex = comment.likes.indexOf(userId);
+
+    if (likeIndex > -1) {
+      // 已点赞，取消点赞
+      comment.likes.splice(likeIndex, 1);
+    } else {
+      // 未点赞，添加点赞
+      comment.likes.push(userId);
+    }
+
+    await comment.save();
+
+    res.status(200).json({
+      success: true,
+      message: likeIndex > -1 ? '取消点赞' : '点赞成功',
+      likesCount: comment.likes.length,
+      isLiked: likeIndex === -1,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: '操作失败',
+      error: error.message,
+    });
+  }
+};

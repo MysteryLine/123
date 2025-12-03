@@ -135,12 +135,64 @@ export const getCurrentUser = async (req, res) => {
         email: user.email,
         avatar: user.avatar,
         bio: user.bio,
+        createdAt: user.createdAt,
       },
     });
   } catch (error) {
     res.status(500).json({
       success: false,
       message: '获取用户信息失败',
+      error: error.message,
+    });
+  }
+};
+
+// 更新用户资料
+export const updateProfile = async (req, res) => {
+  try {
+    const { username, bio, avatar } = req.body;
+    const user = await User.findById(req.userId);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: '用户不存在',
+      });
+    }
+
+    // 如果更新用户名，检查是否已被使用
+    if (username && username !== user.username) {
+      const existingUser = await User.findOne({ username });
+      if (existingUser) {
+        return res.status(400).json({
+          success: false,
+          message: '用户名已被使用',
+        });
+      }
+      user.username = username;
+    }
+
+    // 更新其他字段
+    if (bio !== undefined) user.bio = bio;
+    if (avatar !== undefined) user.avatar = avatar;
+
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: '资料更新成功',
+      user: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        avatar: user.avatar,
+        bio: user.bio,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: '更新资料失败',
       error: error.message,
     });
   }

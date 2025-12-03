@@ -127,3 +127,43 @@ export const deletePost = async (req, res) => {
     });
   }
 };
+
+// 点赞/取消点赞帖子
+export const toggleLikePost = async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+
+    if (!post) {
+      return res.status(404).json({
+        success: false,
+        message: '帖子不存在',
+      });
+    }
+
+    const userId = req.userId;
+    const likeIndex = post.likes.indexOf(userId);
+
+    if (likeIndex > -1) {
+      // 已点赞，取消点赞
+      post.likes.splice(likeIndex, 1);
+    } else {
+      // 未点赞，添加点赞
+      post.likes.push(userId);
+    }
+
+    await post.save();
+
+    res.status(200).json({
+      success: true,
+      message: likeIndex > -1 ? '取消点赞' : '点赞成功',
+      likesCount: post.likes.length,
+      isLiked: likeIndex === -1,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: '操作失败',
+      error: error.message,
+    });
+  }
+};

@@ -1,31 +1,43 @@
 "use client";
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
+import Avatar from '@/components/Avatar';
+import LikeButton from '@/components/LikeButton';
+import { api } from '@/lib/apiClient';
 
 export default function PostDetailPage() {
     const params = useParams();
-    const id = params?.id;
+    const id = params?.id as string;
     const [post, setPost] = useState<any>(null);
     const [comments, setComments] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [commentContent, setCommentContent] = useState('');
     const [submitting, setSubmitting] = useState(false);
-
-    const rawBase = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000';
-    const base = rawBase.endsWith('/api') ? rawBase.slice(0, -4) : rawBase;
+    const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
     useEffect(() => {
         if (!id) return;
-        const fetchPost = async () => {
+        const fetchData = async () => {
             try {
-                const res = await fetch(`${base}/api/posts/${id}`);
-                const data = await res.json();
-                if (data.success) {
-                    setPost(data.post);
-                    setComments(data.post.comments || []);
+                // 获取当前用户信息
+                const token = localStorage.getItem('token');
+                if (token) {
+                    try {
+                        const userResponse = await api.auth.getCurrentUser();
+                        setCurrentUserId(userResponse.data.user.id);
+                    } catch (err) {
+                        console.log('未登录或token过期');
+                    }
+                }
+
+                // 获取帖子详情
+                const response = await api.posts.getById(id);
+                if (response.data.success) {
+                    setPost(response.data.post);
+                    setComments(response.data.post.comments || []);
                 } else {
-                    setError(data.message || '获取帖子失败');
+                    setError(response.data.message || '获取帖子失败');
                 }
             } catch (err) {
                 setError('网络错误，无法加载帖子');
@@ -33,8 +45,8 @@ export default function PostDetailPage() {
                 setLoading(false);
             }
         };
-        fetchPost();
-    }, [id, base]);
+        fetchData();
+    }, [id]);
 
     const handleAddComment = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -42,26 +54,43 @@ export default function PostDetailPage() {
 
         setSubmitting(true);
         try {
-            const token = localStorage.getItem('token');
-            const res = await fetch(`${base}/api/posts/${id}/comments`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-                },
-                body: JSON.stringify({ content: commentContent }),
-            });
-            const data = await res.json();
-            if (data.success) {
-                setComments([...comments, data.comment]);
+            const response = await api.comments.add(id, commentContent);
+            if (response.data.success) {
+                setComments([...comments, response.data.comment]);
                 setCommentContent('');
             } else {
-                alert(data.message || '评论失败');
+                alert(response.data.message || '评论失败');
             }
         } catch (err) {
             alert('网络错误，发表评论失败');
         } finally {
             setSubmitting(false);
+        }
+    };
+
+    const handleLikePost = async () => {
+        if (!currentUserId) {
+            alert('请先登录');
+            return;
+        }
+        try {
+            const response = await api.posts.toggleLike(id);
+            return response.data;
+        } catch (error) {
+            throw error;
+        }
+    };
+
+    const handleLikeComment = async (commentId: string) => {
+        if (!currentUserId) {
+            alert('请先登录');
+            return;
+        }
+        try {
+            const response = await api.comments.toggleLike(id, commentId);
+            return response.data;
+        } catch (error) {
+            throw error;
         }
     };
 
@@ -74,11 +103,37 @@ export default function PostDetailPage() {
             <div style={{ maxWidth: 800, margin: '0 auto' }}>
                 {/* 帖子内容 */}
                 <div style={{ background: '#fff', borderRadius: 12, boxShadow: '0 2px 16px #e0e7ef', padding: '2rem', marginBottom: '2rem' }}>
-                    <h1 style={{ fontWeight: 700, fontSize: '1.5rem', marginBottom: '1.5rem' }}>{post.title}</h1>
-                    <div style={{ color: '#666', marginBottom: '1.5rem', fontSize: '0.95rem', borderBottom: '1px solid #eee', paddingBottom: '1rem' }}>
-                        作者：<span style={{ fontWeight: 600 }}>{post.author?.username || '匿名'}</span> · {new Date(post.createdAt).toLocaleString()}
+                    {/* 作者信息 */}
+                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: '1px solid #eee' }}>
+                        <Avatar src={post.author?.avatar} username={post.author?.username || '匿名'} size="medium" />
+                        <div style={{ marginLeft: '0.75rem', flex: 1 }}>
+                            <div style={{ fontWeight: 600, color: '#222', fontSize: '1.05rem' }}>{post.author?.username || '匿名'}</div>
+                            <div style={{ fontSize: '0.85rem', color: '#888' }}>{new Date(post.createdAt).toLocaleString()}</div>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', color: '#666', fontSize: '0.9rem' }}>
+                            <span>👁️ {post.views || 0} 浏览</span>
+                        </div>
                     </div>
-                    <article style={{ lineHeight: 1.8, fontSize: '1.1rem', color: '#222', whiteSpace: 'pre-wrap' }}>{post.content}</article>
+
+                    {/* 标题和内容 */}
+                    <h1 style={{ fontWeight: 700, fontSize: '1.8rem', marginBottom: '1.5rem', color: '#111' }}>{post.title}</h1>
+                    <article style={{ lineHeight: 1.8, fontSize: '1.1rem', color: '#222', whiteSpace: 'pre-wrap', marginBottom: '1.5rem' }}>{post.content}</article>
+
+                    {/* 互动按钮 */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', paddingTop: '1rem', borderTop: '1px solid #f0f0f0' }}>
+                        <LikeButton
+                            initialCount={post.likes?.length || 0}
+                            initialIsLiked={currentUserId ? post.likes?.includes(currentUserId) : false}
+                            onToggle={handleLikePost}
+                            size="medium"
+                        />
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#666', fontSize: '0.95rem' }}>
+                            <svg xmlns="http://www.w3.org/2000/svg" style={{ width: 20, height: 20 }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                            </svg>
+                            <span>{comments.length} 评论</span>
+                        </div>
+                    </div>
                 </div>
 
                 {/* 评论区标题 */}
@@ -110,11 +165,27 @@ export default function PostDetailPage() {
                     ) : (
                         comments.map((c) => (
                             <div key={c._id} style={{ background: '#fff', borderRadius: 12, boxShadow: '0 2px 16px #e0e7ef', padding: '1.5rem' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-                                    <span style={{ fontWeight: 600, color: '#222' }}>{c.author?.username || '匿名'}</span>
-                                    <span style={{ color: '#999', fontSize: '0.9rem' }}>{new Date(c.createdAt).toLocaleString()}</span>
+                                {/* 评论者信息 */}
+                                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '0.75rem' }}>
+                                    <Avatar src={c.author?.avatar} username={c.author?.username || '匿名'} size="small" />
+                                    <div style={{ marginLeft: '0.5rem', flex: 1 }}>
+                                        <div style={{ fontWeight: 600, color: '#222', fontSize: '0.95rem' }}>{c.author?.username || '匿名'}</div>
+                                        <div style={{ color: '#999', fontSize: '0.8rem' }}>{new Date(c.createdAt).toLocaleString()}</div>
+                                    </div>
                                 </div>
-                                <div style={{ color: '#333', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{c.content}</div>
+
+                                {/* 评论内容 */}
+                                <div style={{ color: '#333', lineHeight: 1.6, whiteSpace: 'pre-wrap', marginBottom: '0.75rem', marginLeft: '2.5rem' }}>{c.content}</div>
+
+                                {/* 评论点赞 */}
+                                <div style={{ marginLeft: '2.5rem' }}>
+                                    <LikeButton
+                                        initialCount={c.likes?.length || 0}
+                                        initialIsLiked={currentUserId ? c.likes?.includes(currentUserId) : false}
+                                        onToggle={() => handleLikeComment(c._id)}
+                                        size="small"
+                                    />
+                                </div>
                             </div>
                         ))
                     )}
