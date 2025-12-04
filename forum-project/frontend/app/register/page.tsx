@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
+import { api } from "@/lib/apiClient";
 
 export default function RegisterPage() {
     const [username, setUsername] = useState("");
@@ -14,23 +15,15 @@ export default function RegisterPage() {
         setLoading(true);
         setError("");
         try {
-            // 兼容 NEXT_PUBLIC_API_BASE_URL 是否包含 /api 的情况
-            const rawBase = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
-            const base = rawBase.endsWith('/api') ? rawBase.slice(0, -4) : rawBase; // remove trailing /api if present
-            const res = await fetch(`${base}/api/auth/register`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ username, email, password }),
-            });
-            const data = await res.json();
-            if (data.success) {
-                localStorage.setItem("token", data.token);
+            const response = await api.auth.register({ username, email, password });
+            if (response.data.success) {
+                localStorage.setItem("token", response.data.token);
                 window.location.href = "/";
             } else {
-                setError(data.message || "注册失败");
+                setError(response.data.message || "注册失败");
             }
-        } catch (err) {
-            setError("网络错误，请稍后重试");
+        } catch (err: any) {
+            setError(err.response?.data?.message || "网络错误，请稍后重试");
         }
         setLoading(false);
     };
