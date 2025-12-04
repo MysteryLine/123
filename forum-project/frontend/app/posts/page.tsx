@@ -89,6 +89,20 @@ export default function PostsPage() {
                                     <div style={{ color: '#666', fontSize: '0.95rem', marginBottom: '1rem', lineHeight: 1.6 }}>
                                         {p.content.substring(0, 150)}{p.content.length > 150 ? '...' : ''}
                                     </div>
+
+                                    {/* 帖子缩略图 */}
+                                    {p.images && p.images.length > 0 && (
+                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '0.5rem', marginBottom: '1rem' }}>
+                                            {p.images.slice(0, 3).map((img: string, idx: number) => (
+                                                <img key={idx} src={img} alt={`图片 ${idx + 1}`} style={{ width: '100%', height: '150px', objectFit: 'cover', borderRadius: 6 }} />
+                                            ))}
+                                            {p.images.length > 3 && (
+                                                <div style={{ width: '100%', height: '150px', background: '#f0f0f0', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888', fontWeight: 600 }}>
+                                                    +{p.images.length - 3}
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
                                 </Link>
 
                                 {/* 互动按钮 */}

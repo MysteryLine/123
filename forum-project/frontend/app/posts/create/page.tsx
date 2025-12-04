@@ -1,10 +1,13 @@
 "use client";
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import ImageUpload from '@/components/ImageUpload';
+import { api } from '@/lib/apiClient';
 
 export default function CreatePostPage() {
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
+    const [images, setImages] = useState<string[]>([]);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const router = useRouter();
@@ -14,25 +17,14 @@ export default function CreatePostPage() {
         setLoading(true);
         setError('');
         try {
-            const token = localStorage.getItem('token');
-            const rawBase = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000';
-            const base = rawBase.endsWith('/api') ? rawBase.slice(0, -4) : rawBase;
-            const res = await fetch(`${base}/api/posts`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-                },
-                body: JSON.stringify({ title, content }),
-            });
-            const data = await res.json();
-            if (data.success) {
-                router.push(`/posts/${data.post._id}`);
+            const res = await api.posts.create({ title, content, images });
+            if (res.data.success) {
+                router.push(`/posts/${res.data.post._id}`);
             } else {
-                setError(data.message || '发布失败');
+                setError(res.data.message || '发布失败');
             }
-        } catch (err) {
-            setError('网络错误，发布失败');
+        } catch (err: any) {
+            setError(err.response?.data?.message || '网络错误，发布失败');
         } finally {
             setLoading(false);
         }
@@ -45,6 +37,12 @@ export default function CreatePostPage() {
                 <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                     <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="标题" required style={{ padding: '0.8rem', borderRadius: 8, border: '1px solid #e6e6e6', fontSize: '1rem' }} />
                     <textarea value={content} onChange={(e) => setContent(e.target.value)} placeholder="内容" rows={8} required style={{ padding: '0.8rem', borderRadius: 8, border: '1px solid #e6e6e6', fontSize: '1rem' }} />
+
+                    <div style={{ padding: '1rem', background: '#f9fafb', borderRadius: 8, border: '1px solid #e6e6e6' }}>
+                        <h3 style={{ fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.8rem', color: '#666' }}>添加图片（可选）</h3>
+                        <ImageUpload onImagesChange={setImages} maxImages={9} />
+                    </div>
+
                     <button type="submit" disabled={loading} style={{ padding: '0.8rem', background: '#0ea5ff', color: '#fff', border: 'none', borderRadius: 8, fontWeight: 600 }}>{loading ? '发布中...' : '发布'}</button>
                     {error && <div style={{ color: '#c00' }}>{error}</div>}
                 </form>

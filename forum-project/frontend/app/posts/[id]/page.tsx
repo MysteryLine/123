@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Avatar from '@/components/Avatar';
 import LikeButton from '@/components/LikeButton';
+import ImageUpload from '@/components/ImageUpload';
 import { api } from '@/lib/apiClient';
 
 export default function PostDetailPage() {
@@ -13,6 +14,7 @@ export default function PostDetailPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [commentContent, setCommentContent] = useState('');
+    const [commentImages, setCommentImages] = useState<string[]>([]);
     const [submitting, setSubmitting] = useState(false);
     const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
@@ -54,10 +56,11 @@ export default function PostDetailPage() {
 
         setSubmitting(true);
         try {
-            const response = await api.comments.add(id, commentContent);
+            const response = await api.comments.add(id, commentContent, commentImages);
             if (response.data.success) {
                 setComments([...comments, response.data.comment]);
                 setCommentContent('');
+                setCommentImages([]);
             } else {
                 alert(response.data.message || '评论失败');
             }
@@ -119,6 +122,15 @@ export default function PostDetailPage() {
                     <h1 style={{ fontWeight: 700, fontSize: '1.8rem', marginBottom: '1.5rem', color: '#111' }}>{post.title}</h1>
                     <article style={{ lineHeight: 1.8, fontSize: '1.1rem', color: '#222', whiteSpace: 'pre-wrap', marginBottom: '1.5rem' }}>{post.content}</article>
 
+                    {/* 帖子图片 */}
+                    {post.images && post.images.length > 0 && (
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '0.75rem', marginBottom: '1.5rem' }}>
+                            {post.images.map((img: string, idx: number) => (
+                                <img key={idx} src={img} alt={`图片 ${idx + 1}`} style={{ width: '100%', height: '200px', objectFit: 'cover', borderRadius: 8, cursor: 'pointer' }} onClick={() => window.open(img, '_blank')} />
+                            ))}
+                        </div>
+                    )}
+
                     {/* 互动按钮 */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', paddingTop: '1rem', borderTop: '1px solid #f0f0f0' }}>
                         <LikeButton
@@ -147,12 +159,18 @@ export default function PostDetailPage() {
                             onChange={(e) => setCommentContent(e.target.value)}
                             placeholder="分享你的想法..."
                             rows={4}
-                            style={{ width: '100%', padding: '0.8rem', borderRadius: 8, border: '1px solid #e6e6e6', fontSize: '1rem', boxSizing: 'border-box' }}
+                            style={{ width: '100%', padding: '0.8rem', borderRadius: 8, border: '1px solid #e6e6e6', fontSize: '1rem', boxSizing: 'border-box', marginBottom: '1rem' }}
                         />
+
+                        <div style={{ padding: '1rem', background: '#f9fafb', borderRadius: 8, border: '1px solid #e6e6e6', marginBottom: '1rem' }}>
+                            <h4 style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.5rem', color: '#666' }}>添加图片（可选）</h4>
+                            <ImageUpload onImagesChange={setCommentImages} maxImages={6} existingImages={commentImages} />
+                        </div>
+
                         <button
                             type="submit"
                             disabled={submitting || !commentContent.trim()}
-                            style={{ marginTop: '0.75rem', padding: '0.6rem 1.2rem', background: '#0ea5ff', color: '#fff', border: 'none', borderRadius: 8, fontWeight: 600, cursor: 'pointer' }}>
+                            style={{ padding: '0.6rem 1.2rem', background: '#0ea5ff', color: '#fff', border: 'none', borderRadius: 8, fontWeight: 600, cursor: 'pointer' }}>
                             {submitting ? '发表中...' : '发表评论'}
                         </button>
                     </form>
@@ -176,6 +194,15 @@ export default function PostDetailPage() {
 
                                 {/* 评论内容 */}
                                 <div style={{ color: '#333', lineHeight: 1.6, whiteSpace: 'pre-wrap', marginBottom: '0.75rem', marginLeft: '2.5rem' }}>{c.content}</div>
+
+                                {/* 评论图片 */}
+                                {c.images && c.images.length > 0 && (
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: '0.5rem', marginBottom: '0.75rem', marginLeft: '2.5rem' }}>
+                                        {c.images.map((img: string, idx: number) => (
+                                            <img key={idx} src={img} alt={`图片 ${idx + 1}`} style={{ width: '100%', height: '120px', objectFit: 'cover', borderRadius: 6, cursor: 'pointer' }} onClick={() => window.open(img, '_blank')} />
+                                        ))}
+                                    </div>
+                                )}
 
                                 {/* 评论点赞 */}
                                 <div style={{ marginLeft: '2.5rem' }}>

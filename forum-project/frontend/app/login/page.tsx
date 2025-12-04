@@ -22,7 +22,9 @@ export default function LoginPage() {
                 setError(response.data.message || "登录失败");
             }
         } catch (err: any) {
-            setError(err.response?.data?.message || "网络错误，请稍后重试");
+            const errorMessage = err.response?.data?.message || err.response?.data?.error || err.message || "网络错误，请稍后重试";
+            console.error('登录错误详情:', err.response?.data);
+            setError(errorMessage);
         }
         setLoading(false);
     };

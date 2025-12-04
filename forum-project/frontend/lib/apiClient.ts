@@ -41,7 +41,7 @@ export const api = {
   posts: {
     getAll: () => apiClient.get('/posts'),
     getById: (id: string) => apiClient.get(`/posts/${id}`),
-    create: (data: { title: string; content: string }) =>
+    create: (data: { title: string; content: string; images?: string[] }) =>
       apiClient.post('/posts', data),
     delete: (id: string) => apiClient.delete(`/posts/${id}`),
     toggleLike: (id: string) => apiClient.post(`/posts/${id}/like`),
@@ -49,12 +49,17 @@ export const api = {
 
   // 评论相关
   comments: {
-    add: (postId: string, content: string) =>
-      apiClient.post(`/posts/${postId}/comments`, { content }),
+    add: (postId: string, content: string, images?: string[]) =>
+      apiClient.post(`/posts/${postId}/comments`, { content, images }),
     delete: (postId: string, commentId: string) =>
       apiClient.delete(`/posts/${postId}/comments/${commentId}`),
     toggleLike: (postId: string, commentId: string) =>
       apiClient.post(`/posts/${postId}/comments/${commentId}/like`),
+  },
+
+  // 上传相关
+  upload: {
+    getToken: () => apiClient.get('/upload/token'),
   },
 };
 
