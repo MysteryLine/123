@@ -1,6 +1,6 @@
 # 论坛项目 GitHub 推送脚本
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "  推送代码到 GitHub" -ForegroundColor Cyan
+Write-Host "  推送代码到 GitHub (123仓库)" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 
@@ -25,12 +25,12 @@ git add .
 Write-Host "📤 正在提交..." -ForegroundColor Green
 git commit -m $commit_msg
 
-Write-Host "🚀 正在推送到 GitHub..." -ForegroundColor Green
-git push origin master:main
+Write-Host "🚀 正在推送到 123 仓库..." -ForegroundColor Green
+git push https://github.com/MysteryLine/123.git master:main
 
 Write-Host ""
 Write-Host "✅ 推送完成！" -ForegroundColor Green
 Write-Host ""
-Write-Host "📍 仓库: https://github.com/MysteryLine/forum-project" -ForegroundColor Yellow
+Write-Host "📍 仓库: https://github.com/MysteryLine/123" -ForegroundColor Yellow
 Write-Host ""
 Read-Host "按 Enter 键关闭"

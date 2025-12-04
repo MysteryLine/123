@@ -4,7 +4,7 @@ title 论坛项目 GitHub 推送脚本
 color 0A
 
 echo ========================================
-echo   推送代码到 GitHub
+echo   推送代码到 GitHub (123仓库)
 echo ========================================
 echo.
 
@@ -25,12 +25,12 @@ git add .
 echo 📤 正在提交...
 git commit -m "%commit_msg%"
 
-echo 🚀 正在推送到 GitHub...
-git push origin master:main
+echo 🚀 正在推送到 123 仓库...
+git push https://github.com/MysteryLine/123.git master:main
 
 echo.
 echo ✅ 推送完成！
 echo.
-echo 📍 仓库: https://github.com/MysteryLine/forum-project
+echo 📍 仓库: https://github.com/MysteryLine/123
 echo.
 pause
