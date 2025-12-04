@@ -29,6 +29,11 @@ const postSchema = new mongoose.Schema(
         ref: 'User',
       },
     ],
+    images: [
+      {
+        type: String, // 存储图片 URL
+      },
+    ],
     views: {
       type: Number,
       default: 0,

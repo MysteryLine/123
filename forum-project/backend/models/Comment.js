@@ -22,6 +22,11 @@ const commentSchema = new mongoose.Schema(
         ref: 'User',
       },
     ],
+    images: [
+      {
+        type: String, // 存储图片 URL
+      },
+    ],
   },
   { timestamps: true }
 );

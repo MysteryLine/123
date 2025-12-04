@@ -4,7 +4,7 @@ import Post from '../models/Post.js';
 // 添加评论
 export const addComment = async (req, res) => {
   try {
-    const { content } = req.body;
+    const { content, images } = req.body;
     const { postId } = req.params;
 
     if (!content) {
@@ -25,6 +25,7 @@ export const addComment = async (req, res) => {
 
     const comment = new Comment({
       content,
+      images: images || [],
       author: req.userId,
       post: postId,
     });

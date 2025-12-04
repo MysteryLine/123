@@ -28,7 +28,7 @@ export const getAllPosts = async (req, res) => {
 // 创建帖子
 export const createPost = async (req, res) => {
   try {
-    const { title, content } = req.body;
+    const { title, content, images } = req.body;
 
     if (!title || !content) {
       return res.status(400).json({
@@ -40,6 +40,7 @@ export const createPost = async (req, res) => {
     const post = new Post({
       title,
       content,
+      images: images || [],
       author: req.userId,
     });
 

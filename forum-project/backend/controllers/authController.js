@@ -14,16 +14,48 @@ export const register = async (req, res) => {
       });
     }
 
+    // 验证用户名长度
+    if (username.length < 3) {
+      return res.status(400).json({
+        success: false,
+        message: '用户名至少需要 3 个字符',
+      });
+    }
+
+    // 验证邮箱格式
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        success: false,
+        message: '请输入有效的邮箱地址',
+      });
+    }
+
+    // 验证密码长度
+    if (password.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: '密码至少需要 6 个字符',
+      });
+    }
+
     // 检查用户是否已存在
     const existingUser = await User.findOne({
       $or: [{ email }, { username }],
     });
 
     if (existingUser) {
-      return res.status(400).json({
-        success: false,
-        message: '用户名或邮箱已被使用',
-      });
+      if (existingUser.email === email) {
+        return res.status(400).json({
+          success: false,
+          message: '该邮箱已被注册',
+        });
+      } else {
+        return res.status(400).json({
+          success: false,
+          message: '该用户名已被使用',
+        });
+      }
     }
 
     // 创建新用户
@@ -48,9 +80,10 @@ export const register = async (req, res) => {
       },
     });
   } catch (error) {
+    console.error('注册错误:', error);
     res.status(500).json({
       success: false,
-      message: '注册失败',
+      message: error.message || '注册失败',
       error: error.message,
     });
   }
@@ -193,6 +226,64 @@ export const updateProfile = async (req, res) => {
     res.status(500).json({
       success: false,
       message: '更新资料失败',
+      error: error.message,
+    });
+  }
+};
+
+// 修改密码
+export const changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    // 验证必需字段
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: '当前密码和新密码是必需的',
+      });
+    }
+
+    // 验证新密码长度
+    if (newPassword.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: '新密码至少需要 6 个字符',
+      });
+    }
+
+    // 查找用户并包含密码字段
+    const user = await User.findById(req.userId).select('+password');
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: '用户不存在',
+      });
+    }
+
+    // 验证当前密码
+    const isPasswordCorrect = await user.comparePassword(currentPassword);
+
+    if (!isPasswordCorrect) {
+      return res.status(401).json({
+        success: false,
+        message: '当前密码错误',
+      });
+    }
+
+    // 更新密码
+    user.password = newPassword;
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: '密码修改成功',
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: '修改密码失败',
       error: error.message,
     });
   }
