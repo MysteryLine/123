@@ -14,19 +14,40 @@ dotenv.config({ path: '.env.local' });
 
 const app = express();
 const httpServer = createServer(app);
-const io = new Server(httpServer, {
-  cors: {
-    origin: process.env.CLIENT_URL || 'http://localhost:3000',
-    methods: ['GET', 'POST'],
+
+// 动态 CORS 配置：允许所有 Vercel 域名和本地开发
+const corsOptions = {
+  origin: function (origin, callback) {
+    // 允许无 origin 的请求（如移动端应用、Postman 等）
+    if (!origin) return callback(null, true);
+    
+    // 允许的域名模式
+    const allowedPatterns = [
+      /^https?:\/\/localhost(:\d+)?$/,  // 本地开发
+      /^https:\/\/.*\.vercel\.app$/,     // 所有 Vercel 测试域名
+    ];
+    
+    // 检查是否匹配任一模式
+    const isAllowed = allowedPatterns.some(pattern => pattern.test(origin));
+    
+    if (isAllowed) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
   },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+};
+
+const io = new Server(httpServer, {
+  cors: corsOptions,
 });
 
 // 中间件
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:3000',
-}));
+app.use(cors(corsOptions));
 
 // 数据库连接
 const connectDB = async () => {
