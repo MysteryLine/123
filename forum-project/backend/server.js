@@ -20,16 +20,16 @@ const corsOptions = {
   origin: function (origin, callback) {
     // 允许无 origin 的请求（如移动端应用、Postman 等）
     if (!origin) return callback(null, true);
-    
+
     // 允许的域名模式
     const allowedPatterns = [
       /^https?:\/\/localhost(:\d+)?$/,  // 本地开发
       /^https:\/\/.*\.vercel\.app$/,     // 所有 Vercel 测试域名
     ];
-    
+
     // 检查是否匹配任一模式
     const isAllowed = allowedPatterns.some(pattern => pattern.test(origin));
-    
+
     if (isAllowed) {
       callback(null, true);
     } else {
