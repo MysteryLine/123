@@ -28,8 +28,8 @@ apiClient.interceptors.request.use(
 export const api = {
   // 认证相关
   auth: {
-    register: (data: { username: string; email: string; password: string }) =>
-      apiClient.post('/auth/register', data),
+      register: (data: { username: string; email: string; password: string }) =>
+        apiClient.post('/api/auth/register', data),
     login: (data: { email: string; password: string }) =>
       apiClient.post('/auth/login', data),
     getCurrentUser: () => apiClient.get('/auth/me'),
