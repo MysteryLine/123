@@ -35,32 +35,45 @@ const LikeButton: React.FC<LikeButtonProps> = ({
         }
     };
 
-    const sizeClasses = size === 'small' ? 'text-sm px-2 py-1' : 'text-base px-3 py-1.5';
+    const sizeConfig = size === 'small'
+        ? { iconSize: 18, padding: '0.4rem 0.8rem', fontSize: '0.85rem' }
+        : { iconSize: 20, padding: '0.6rem 1rem', fontSize: '0.95rem' };
 
     return (
         <button
             onClick={handleToggle}
             disabled={isLoading}
-            className={`${sizeClasses} flex items-center gap-1 rounded-full border transition-all ${isLiked
-                    ? 'bg-red-50 border-red-500 text-red-600 hover:bg-red-100'
-                    : 'bg-white border-gray-300 text-gray-600 hover:bg-gray-50'
-                } disabled:opacity-50 disabled:cursor-not-allowed`}
+            style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                padding: sizeConfig.padding,
+                fontSize: sizeConfig.fontSize,
+                fontWeight: '600',
+                border: '1px solid',
+                borderRadius: '8px',
+                cursor: isLoading ? 'not-allowed' : 'pointer',
+                transition: 'all 0.2s ease',
+                backgroundColor: isLiked ? '#fee2e2' : '#ffffff',
+                borderColor: isLiked ? '#f87171' : '#e5e7eb',
+                color: isLiked ? '#dc2626' : '#666666',
+                opacity: isLoading ? 0.6 : 1,
+            }}
         >
             <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className={`${size === 'small' ? 'w-4 h-4' : 'w-5 h-5'}`}
-                viewBox="0 0 20 20"
+                width={sizeConfig.iconSize}
+                height={sizeConfig.iconSize}
+                viewBox="0 0 24 24"
                 fill={isLiked ? 'currentColor' : 'none'}
                 stroke="currentColor"
                 strokeWidth="1.5"
             >
                 <path
-                    fillRule="evenodd"
-                    d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
-                    clipRule="evenodd"
+                    d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
                 />
             </svg>
-            <span className="font-medium">{likesCount}</span>
+            <span>{likesCount}</span>
         </button>
     );
 };
