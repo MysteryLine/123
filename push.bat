@@ -71,15 +71,24 @@ echo 🏷️  请选择要推送的分支：
 echo   1. master
 echo   2. main
 echo   3. 自定义输入
-set /p branch_choice="请输入分支编号 (1/2/3): "
+set /p branch_choice="请输入分支编号 (1/2/3，然后按 Enter): "
 
-if "%branch_choice%"=="1" (
+REM 确保输入不为空
+if "%branch_choice%"=="" (
+    echo ⚠️  未输入任何内容，使用默认分支 master
+    set branch_name=master
+) else if "%branch_choice%"=="1" (
     set branch_name=master
 ) else if "%branch_choice%"=="2" (
     set branch_name=main
 ) else if "%branch_choice%"=="3" (
-    set /p branch_name="请输入分支名称: "
+    set /p branch_name="请输入自定义分支名称（然后按 Enter）: "
+    if "%branch_name%"=="" (
+        echo ⚠️  分支名称为空，使用默认分支 master
+        set branch_name=master
+    )
 ) else (
+    echo ⚠️  无效输入，使用默认分支 master
     set branch_name=master
 )
 
