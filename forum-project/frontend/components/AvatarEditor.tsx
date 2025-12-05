@@ -19,8 +19,8 @@ export default function AvatarEditor({ onComplete, onCancel }: AvatarEditorProps
 
     // 裁剪相关状态
     const cropCanvasRef = useRef<HTMLCanvasElement>(null);
-    const [cropX, setCropX] = useState(50);
-    const [cropY, setCropY] = useState(50);
+    const [cropX, setCropX] = useState(150);
+    const [cropY, setCropY] = useState(150);
     const [cropRadius, setCropRadius] = useState(80);
     const [isDraggingCircle, setIsDraggingCircle] = useState(false);
     const [dragMode, setDragMode] = useState<'move' | 'resize' | null>(null);
@@ -113,31 +113,33 @@ export default function AvatarEditor({ onComplete, onCancel }: AvatarEditorProps
     };
 
     // 绘画事件处理
-    const handleDrawStart = (e: React.MouseEvent<HTMLCanvasElement>) => {
-        if (mode !== 'draw') return;
-        setIsDrawing(true);
-        const canvas = canvasRef.current;
-        if (!canvas) return;
+  const handleDrawStart = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (mode !== 'draw') return;
+    setIsDrawing(true);
+    const canvas = canvasRef.current;
+    if (!canvas) return;
 
-        const rect = canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const x = (e.clientX - rect.left) * scaleX;
+    const y = (e.clientY - rect.top) * scaleY;
 
-        const ctx = canvas.getContext('2d');
-        if (ctx) {
-            ctx.beginPath();
-            ctx.moveTo(x, y);
-        }
-    };
-
-    const handleDrawMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+    }
+  };    const handleDrawMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
         if (!isDrawing || mode !== 'draw') return;
         const canvas = canvasRef.current;
         if (!canvas) return;
 
         const rect = canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        const x = (e.clientX - rect.left) * scaleX;
+        const y = (e.clientY - rect.top) * scaleY;
 
         const ctx = canvas.getContext('2d');
         if (ctx) {
@@ -188,8 +190,10 @@ export default function AvatarEditor({ onComplete, onCancel }: AvatarEditorProps
         if (!canvas) return;
 
         const rect = canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        const x = (e.clientX - rect.left) * scaleX;
+        const y = (e.clientY - rect.top) * scaleY;
 
         const distToCenter = Math.sqrt((x - cropX) ** 2 + (y - cropY) ** 2);
 
@@ -214,8 +218,10 @@ export default function AvatarEditor({ onComplete, onCancel }: AvatarEditorProps
         if (!canvas) return;
 
         const rect = canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        const x = (e.clientX - rect.left) * scaleX;
+        const y = (e.clientY - rect.top) * scaleY;
 
         if (dragMode === 'move') {
             // 移动圆形
@@ -484,9 +490,8 @@ const styles: Record<string, React.CSSProperties> = {
         backgroundColor: '#ffffff',
         cursor: 'crosshair',
         display: 'block',
-        width: '100%',
-        maxWidth: '100%',
-        height: 'auto',
+        width: '300px',
+        height: '300px',
     },
     buttonGroup: {
         display: 'flex',

@@ -24,14 +24,16 @@ export default function AvatarEditPage() {
 
                 // 3秒后重定向到个人资料页
                 setTimeout(() => {
-                    router.push('/profile');
+                    window.location.href = '/profile';
                 }, 2000);
+            } else {
+                setUploadError(response.data.message || '上传失败');
+                setIsUploading(false);
             }
         } catch (error: any) {
             const message = error.response?.data?.message || '头像上传失败，请重试';
             setUploadError(message);
             console.error('头像上传失败:', error);
-        } finally {
             setIsUploading(false);
         }
     };

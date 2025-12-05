@@ -37,7 +37,7 @@ export const getUploadToken = async (req, res) => {
 // 上传头像（接收 Base64 数据）
 export const uploadAvatar = async (req, res) => {
     try {
-        const userId = req.user?.id;
+        const userId = req.userId;
         if (!userId) {
             return res.status(401).json({
                 success: false,
@@ -54,7 +54,7 @@ export const uploadAvatar = async (req, res) => {
         }
 
         // 检查 base64 数据大小（限制在 500KB）
-        const sizeInBytes = Buffer.byteLength(avatarBase64, 'utf8') / 1.333; // Base64 编码后的大小约为原大小的 1.33 倍
+        const sizeInBytes = Buffer.byteLength(avatarBase64, 'utf8');
         if (sizeInBytes > 512000) { // 500KB
             return res.status(400).json({
                 success: false,
