@@ -7,9 +7,18 @@ interface AvatarProps {
     username: string;
     size?: 'small' | 'medium' | 'large';
     className?: string;
+    editable?: boolean;
+    onEdit?: () => void;
 }
 
-const Avatar: React.FC<AvatarProps> = ({ src, username, size = 'medium', className = '' }) => {
+const Avatar: React.FC<AvatarProps> = ({
+    src,
+    username,
+    size = 'medium',
+    className = '',
+    editable = false,
+    onEdit,
+}) => {
     const sizeClasses = {
         small: 'w-8 h-8 text-sm',
         medium: 'w-10 h-10 text-base',
@@ -37,19 +46,41 @@ const Avatar: React.FC<AvatarProps> = ({ src, username, size = 'medium', classNa
 
     if (src) {
         return (
-            <img
-                src={src}
-                alt={`${username} 的头像`}
-                className={`${sizeClasses[size]} rounded-full object-cover ${className}`}
-            />
+            <div className="relative">
+                <img
+                    src={src}
+                    alt={`${username} 的头像`}
+                    className={`${sizeClasses[size]} rounded-full object-cover ${className}`}
+                />
+                {editable && onEdit && (
+                    <button
+                        onClick={onEdit}
+                        className="absolute bottom-0 right-0 w-6 h-6 bg-blue-500 rounded-full text-white text-xs flex items-center justify-center border-2 border-white hover:bg-blue-600 transition-all"
+                        title="编辑头像"
+                    >
+                        ✏️
+                    </button>
+                )}
+            </div>
         );
     }
 
     return (
-        <div
-            className={`${sizeClasses[size]} ${getBackgroundColor(username)} rounded-full flex items-center justify-center text-white font-semibold ${className}`}
-        >
-            {initial}
+        <div className="relative">
+            <div
+                className={`${sizeClasses[size]} ${getBackgroundColor(username)} rounded-full flex items-center justify-center text-white font-semibold ${className}`}
+            >
+                {initial}
+            </div>
+            {editable && onEdit && (
+                <button
+                    onClick={onEdit}
+                    className="absolute bottom-0 right-0 w-6 h-6 bg-blue-500 rounded-full text-white text-xs flex items-center justify-center border-2 border-white hover:bg-blue-600 transition-all"
+                    title="编辑头像"
+                >
+                    ✏️
+                </button>
+            )}
         </div>
     );
 };

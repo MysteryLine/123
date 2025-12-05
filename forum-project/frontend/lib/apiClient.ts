@@ -73,6 +73,8 @@ export const api = {
   // 上传相关
   upload: {
     getToken: () => apiClient.get('/upload/token'),
+    uploadAvatar: (avatarBase64: string) =>
+      apiClient.post('/upload/avatar', { avatarBase64 }),
   },
 };
 

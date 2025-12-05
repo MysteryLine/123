@@ -93,7 +93,12 @@ const Navbar: React.FC = () => {
                                     cursor: 'pointer',
                                 }}
                             >
-                                <Avatar src={user.avatar} username={user.username} size="small" />
+                                <Avatar
+                                    src={user.avatar}
+                                    username={user.username}
+                                    size="small"
+                                    editable={false}
+                                />
                                 <span style={{ fontWeight: 500, color: '#333' }}>{user.username}</span>
                                 <svg
                                     xmlns="http://www.w3.org/2000/svg"
@@ -129,6 +134,20 @@ const Navbar: React.FC = () => {
                                             onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                                         >
                                             👤 我的资料
+                                        </div>
+                                    </Link>
+                                    <Link href="/profile/avatar" style={{ textDecoration: 'none' }}>
+                                        <div style={{
+                                            padding: '0.75rem 1rem',
+                                            color: '#333',
+                                            cursor: 'pointer',
+                                            transition: 'background 0.2s',
+                                            borderTop: '1px solid #f0f0f0',
+                                        }}
+                                            onMouseEnter={(e) => e.currentTarget.style.background = '#f5f5f5'}
+                                            onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                                        >
+                                            🎨 编辑头像
                                         </div>
                                     </Link>
                                     <div

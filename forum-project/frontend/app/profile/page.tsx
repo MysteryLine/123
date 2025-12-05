@@ -154,6 +154,8 @@ export default function ProfilePage() {
                                 username={user.username}
                                 size="large"
                                 className="border-4 border-white shadow-2xl"
+                                editable={!isEditing}
+                                onEdit={() => router.push('/profile/avatar')}
                             />
                         </div>
 
