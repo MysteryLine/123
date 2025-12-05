@@ -2,28 +2,28 @@
 chcp 65001 >nul
 setlocal enabledelayedexpansion
 
-title 论坛项目 GitHub SSH 推送脚本
+title Forum Project - GitHub SSH Push Script
 color 0A
 
 cd /d %~dp0
 
 echo ========================================
-echo   推送代码到 GitHub (SSH方式)
+echo   Push Code to GitHub (SSH)
 echo ========================================
 echo.
 
-REM 检查是否为 Git 仓库
+REM Check if Git repository
 if not exist .git (
-    echo ❌ 当前目录不是 Git 仓库！
+    echo Error: Not a Git repository!
     pause
     exit /b
 )
 
-echo 📊 当前 Git 状态如下：
+echo Git Status:
 git status
 echo.
 
-REM 获取远程仓库列表
+REM Get remote repositories
 for /f "tokens=1,2" %%A in ('git remote -v') do (
     if "%%B" neq "" (
         set remote_name=%%A
@@ -37,13 +37,13 @@ for /f "tokens=1,2" %%A in ('git remote -v') do (
 )
 
 if not defined first_remote (
-    echo ❌ 未检测到远程仓库！
+    echo Error: No remote repositories found!
     pause
     exit /b
 )
 
 echo.
-set /p remote_choice="请输入要推送的仓库名 (默认: %first_remote%): "
+set /p remote_choice="Select repository name (default: %first_remote%): "
 if "%remote_choice%"=="" (
     set remote_name=%first_remote%
     set remote_url=%first_url%
@@ -55,61 +55,58 @@ if "%remote_choice%"=="" (
 )
 
 echo.
-echo 📝 请输入本次提交信息 (默认: Update code):
-set /p commit_msg="提交信息: "
+set /p commit_msg="Enter commit message (default: Update code): "
 if "%commit_msg%"=="" set commit_msg=Update code
 
 echo.
-echo 🔄 正在添加所有文件...
+echo Adding all files...
 git add .
 
-echo 📤 正在提交到本地仓库...
+echo Committing...
 git commit -m "%commit_msg%"
 
-echo.
-echo 🏷️  请选择要推送的分支：
+if errorlevel 1 (
+    echo.
+    echo Warning: No changes to commit or commit failed!
+    echo.
+    echo Completed! Press any key to exit...
+    pause
+    exit /b
+)
+echo Select branch:
 echo   1. master
 echo   2. main
-echo   3. 自定义输入
-set /p branch_choice="请输入分支编号 (1/2/3，然后按 Enter): "
+echo   3. Custom
+set /p branch_choice="Enter choice (1/2/3): "
 
-REM 确保输入不为空
-if "%branch_choice%"=="" (
-    echo ⚠️  未输入任何内容，使用默认分支 master
-    set branch_name=master
-) else if "%branch_choice%"=="1" (
+if "%branch_choice%"=="1" (
     set branch_name=master
 ) else if "%branch_choice%"=="2" (
     set branch_name=main
 ) else if "%branch_choice%"=="3" (
-    set /p branch_name="请输入自定义分支名称（然后按 Enter）: "
-    if "%branch_name%"=="" (
-        echo ⚠️  分支名称为空，使用默认分支 master
-        set branch_name=master
-    )
+    set /p branch_name="Enter branch name: "
+    if "%branch_name%"=="" set branch_name=master
 ) else (
-    echo ⚠️  无效输入，使用默认分支 master
     set branch_name=master
 )
 
 echo.
-echo 🚀 正在通过 SSH 推送到 [%remote_name%]（%remote_url%）分支 [%branch_name%]...
+echo Pushing to [%remote_name%] (%remote_url%) branch [%branch_name%]...
 git push %remote_name% %branch_name%:%branch_name%
 
 if errorlevel 1 (
     echo.
-    echo ❌ 推送失败，请检查网络或 SSH 配置！
-    echo 提示：运行 ssh -T git@github.com 测试 SSH 连接
+    echo Error: Push failed! Check network or SSH config.
 ) else (
     echo.
-    echo ✅ 推送成功！
+    echo Success: Push completed!
 )
 
 echo.
-echo 📍 仓库：%remote_url%
-echo 📦 分支：%branch_name%
+echo Repository: %remote_url%
+echo Branch: %branch_name%
 echo.
-echo 操作已完成，按任意键退出...
+echo Completed! Press any key to exit...
 pause
 
 
