@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Avatar from '@/components/Avatar';
-import LikeButton from '@/components/LikeButton';
+import InteractionButton from '@/components/InteractionButton';
 import ImageUpload from '@/components/ImageUpload';
 import { api } from '@/lib/apiClient';
 
@@ -297,10 +297,10 @@ export default function PostDetailPage() {
 
                     {/* 互动按钮 */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', paddingTop: '1rem', borderTop: '1px solid #f0f0f0', marginTop: '1.5rem' }}>
-                        <LikeButton
-                            initialCount={post.likes?.length || 0}
-                            initialIsLiked={currentUserId ? post.likes?.includes(currentUserId) : false}
-                            onToggle={handleLikePost}
+                        <InteractionButton
+                            initialLikeCount={post.likes?.length || 0}
+                            initialUserLiked={currentUserId ? post.likes?.includes(currentUserId) : false}
+                            onLike={handleLikePost}
                             size="medium"
                         />
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#666', fontSize: '0.95rem' }}>
@@ -389,12 +389,12 @@ export default function PostDetailPage() {
                                                 </div>
                                             )}
 
-                                            {/* 评论点赞 */}
+                                            {/* 评论互动按钮 */}
                                             <div style={{ marginLeft: '2.5rem' }}>
-                                                <LikeButton
-                                                    initialCount={c.likes?.length || 0}
-                                                    initialIsLiked={currentUserId ? c.likes?.includes(currentUserId) : false}
-                                                    onToggle={() => handleLikeComment(c._id)}
+                                                <InteractionButton
+                                                    initialLikeCount={c.likes?.length || 0}
+                                                    initialUserLiked={currentUserId ? c.likes?.includes(currentUserId) : false}
+                                                    onLike={() => handleLikeComment(c._id)}
                                                     size="small"
                                                 />
                                             </div>
