@@ -17,13 +17,19 @@ git status
 echo.
 
 
-REM 获取所有远程仓库（显示仓库名和地址）
+
+REM 获取所有远程仓库（只取仓库名和地址，不带 (fetch)）
 setlocal enabledelayedexpansion
 set remote_count=0
-for /f "tokens=1,2 delims= " %%A in ('git remote -v ^| find "(fetch)"') do (
-	set /a remote_count+=1
-	set remote_name_!remote_count!=%%A
-	set remote_url_!remote_count!=%%B
+for /f "tokens=1,2 delims= " %%A in ('git remote -v') do (
+	echo %%A %%B | findstr /v "(push)" >nul
+	if not errorlevel 1 (
+		set /a remote_count+=1
+		set remote_name_!remote_count!=%%A
+		for /f "tokens=1 delims= " %%C in ("%%B") do (
+			set remote_url_!remote_count!=%%C
+		)
+	)
 )
 
 if %remote_count%==0 (
