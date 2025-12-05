@@ -35,14 +35,25 @@ export const api = {
     getCurrentUser: () => apiClient.get('/auth/me'),
     updateProfile: (data: { username?: string; bio?: string; avatar?: string }) =>
       apiClient.put('/auth/profile', data),
+    getUserProfile: (userId: string) =>
+      apiClient.get(`/auth/user/${userId}`),
+    followUser: (userId: string) =>
+      apiClient.post(`/auth/follow/${userId}`),
+    unfollowUser: (userId: string) =>
+      apiClient.post(`/auth/unfollow/${userId}`),
   },
 
   // 帖子相关
   posts: {
-    getAll: () => apiClient.get('/posts'),
+    getAll: (page: number = 1, limit: number = 10) =>
+      apiClient.get(`/posts?page=${page}&limit=${limit}`),
     getById: (id: string) => apiClient.get(`/posts/${id}`),
+    getUserPosts: (userId: string, page: number = 1, limit: number = 10) =>
+      apiClient.get(`/posts/user/${userId}?page=${page}&limit=${limit}`),
     create: (data: { title: string; content: string; images?: string[] }) =>
       apiClient.post('/posts', data),
+    update: (id: string, data: { title?: string; content?: string; images?: string[] }) =>
+      apiClient.put(`/posts/${id}`, data),
     delete: (id: string) => apiClient.delete(`/posts/${id}`),
     toggleLike: (id: string) => apiClient.post(`/posts/${id}/like`),
   },
@@ -51,6 +62,8 @@ export const api = {
   comments: {
     add: (postId: string, content: string, images?: string[]) =>
       apiClient.post(`/posts/${postId}/comments`, { content, images }),
+    update: (postId: string, commentId: string, content: string, images?: string[]) =>
+      apiClient.put(`/posts/${postId}/comments/${commentId}`, { content, images }),
     delete: (postId: string, commentId: string) =>
       apiClient.delete(`/posts/${postId}/comments/${commentId}`),
     toggleLike: (postId: string, commentId: string) =>

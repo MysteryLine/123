@@ -230,3 +230,131 @@ export const updateProfile = async (req, res) => {
     });
   }
 };
+
+// 获取用户公开资料（包括粉丝数和关注数）
+export const getUserProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.userId)
+      .select('-password')
+      .populate('following', 'username avatar')
+      .populate('followers', 'username avatar');
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: '用户不存在',
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      user: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        avatar: user.avatar,
+        bio: user.bio,
+        followers: user.followers,
+        following: user.following,
+        followersCount: user.followers.length,
+        followingCount: user.following.length,
+        createdAt: user.createdAt,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: '获取用户资料失败',
+      error: error.message,
+    });
+  }
+};
+
+// 关注用户
+export const followUser = async (req, res) => {
+  try {
+    const currentUserId = req.userId;
+    const targetUserId = req.params.userId;
+
+    if (currentUserId === targetUserId) {
+      return res.status(400).json({
+        success: false,
+        message: '不能关注自己',
+      });
+    }
+
+    const currentUser = await User.findById(currentUserId);
+    const targetUser = await User.findById(targetUserId);
+
+    if (!targetUser) {
+      return res.status(404).json({
+        success: false,
+        message: '用户不存在',
+      });
+    }
+
+    // 检查是否已关注
+    if (currentUser.following.includes(targetUserId)) {
+      return res.status(400).json({
+        success: false,
+        message: '已关注该用户',
+      });
+    }
+
+    // 添加到关注列表
+    currentUser.following.push(targetUserId);
+    targetUser.followers.push(currentUserId);
+
+    await currentUser.save();
+    await targetUser.save();
+
+    res.status(200).json({
+      success: true,
+      message: '关注成功',
+      followersCount: targetUser.followers.length,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: '关注失败',
+      error: error.message,
+    });
+  }
+};
+
+// 取消关注用户
+export const unfollowUser = async (req, res) => {
+  try {
+    const currentUserId = req.userId;
+    const targetUserId = req.params.userId;
+
+    const currentUser = await User.findById(currentUserId);
+    const targetUser = await User.findById(targetUserId);
+
+    if (!targetUser) {
+      return res.status(404).json({
+        success: false,
+        message: '用户不存在',
+      });
+    }
+
+    // 从关注列表移除
+    currentUser.following = currentUser.following.filter(id => id.toString() !== targetUserId);
+    targetUser.followers = targetUser.followers.filter(id => id.toString() !== currentUserId);
+
+    await currentUser.save();
+    await targetUser.save();
+
+    res.status(200).json({
+      success: true,
+      message: '取消关注成功',
+      followersCount: targetUser.followers.length,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: '取消关注失败',
+      error: error.message,
+    });
+  }
+};

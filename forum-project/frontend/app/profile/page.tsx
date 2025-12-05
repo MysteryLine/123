@@ -13,6 +13,8 @@ interface UserProfile {
     avatar?: string;
     bio?: string;
     createdAt: string;
+    followersCount?: number;
+    followingCount?: number;
 }
 
 interface Post {
@@ -274,6 +276,14 @@ export default function ProfilePage() {
                     <div style={{ background: '#fff', borderRadius: '16px', padding: '1.5rem', textAlign: 'center', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}>
                         <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#ec4899', marginBottom: '0.5rem' }}>{userPosts.reduce((sum, post) => sum + (post.likes?.length || 0), 0)}</div>
                         <div style={{ fontSize: '0.95rem', color: '#666' }}>获赞数</div>
+                    </div>
+                    <div style={{ background: '#fff', borderRadius: '16px', padding: '1.5rem', textAlign: 'center', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}>
+                        <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#f59e0b', marginBottom: '0.5rem' }}>{user?.followersCount || 0}</div>
+                        <div style={{ fontSize: '0.95rem', color: '#666' }}>粉丝</div>
+                    </div>
+                    <div style={{ background: '#fff', borderRadius: '16px', padding: '1.5rem', textAlign: 'center', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}>
+                        <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#06b6d4', marginBottom: '0.5rem' }}>{user?.followingCount || 0}</div>
+                        <div style={{ fontSize: '0.95rem', color: '#666' }}>关注</div>
                     </div>
                 </div>
 

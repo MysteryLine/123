@@ -1,20 +1,75 @@
 import Post from '../models/Post.js';
 import Comment from '../models/Comment.js';
 
-// 获取所有帖子
+// 获取用户的帖子
+export const getUserPosts = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const posts = await Post.find({ author: userId })
+      .populate('author', 'username avatar')
+      .populate({
+        path: 'comments',
+        populate: { path: 'author', select: 'username avatar' },
+      })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const total = await Post.countDocuments({ author: userId });
+    const totalPages = Math.ceil(total / limit);
+
+    res.status(200).json({
+      success: true,
+      posts,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: '获取用户帖子失败',
+      error: error.message,
+    });
+  }
+};
+
+// 获取所有帖子（支持分页）
 export const getAllPosts = async (req, res) => {
   try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
     const posts = await Post.find()
       .populate('author', 'username avatar')
       .populate({
         path: 'comments',
         populate: { path: 'author', select: 'username avatar' },
       })
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const total = await Post.countDocuments();
+    const totalPages = Math.ceil(total / limit);
 
     res.status(200).json({
       success: true,
       posts,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+      },
     });
   } catch (error) {
     res.status(500).json({
@@ -90,6 +145,47 @@ export const getPost = async (req, res) => {
     res.status(500).json({
       success: false,
       message: '获取帖子失败',
+      error: error.message,
+    });
+  }
+};
+
+// 编辑帖子
+export const updatePost = async (req, res) => {
+  try {
+    const { title, content, images } = req.body;
+    const post = await Post.findById(req.params.id);
+
+    if (!post) {
+      return res.status(404).json({
+        success: false,
+        message: '帖子不存在',
+      });
+    }
+
+    if (post.author.toString() !== req.userId) {
+      return res.status(403).json({
+        success: false,
+        message: '无权限编辑此帖子',
+      });
+    }
+
+    if (title) post.title = title;
+    if (content) post.content = content;
+    if (images) post.images = images;
+
+    await post.save();
+    await post.populate('author', 'username avatar');
+
+    res.status(200).json({
+      success: true,
+      message: '帖子更新成功',
+      post,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: '编辑帖子失败',
       error: error.message,
     });
   }

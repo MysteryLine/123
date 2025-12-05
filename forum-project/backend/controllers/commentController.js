@@ -50,6 +50,46 @@ export const addComment = async (req, res) => {
   }
 };
 
+// 编辑评论
+export const updateComment = async (req, res) => {
+  try {
+    const { content, images } = req.body;
+    const comment = await Comment.findById(req.params.commentId);
+
+    if (!comment) {
+      return res.status(404).json({
+        success: false,
+        message: '评论不存在',
+      });
+    }
+
+    if (comment.author.toString() !== req.userId) {
+      return res.status(403).json({
+        success: false,
+        message: '无权限编辑此评论',
+      });
+    }
+
+    if (content) comment.content = content;
+    if (images) comment.images = images;
+
+    await comment.save();
+    await comment.populate('author', 'username avatar');
+
+    res.status(200).json({
+      success: true,
+      message: '评论更新成功',
+      comment,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: '编辑评论失败',
+      error: error.message,
+    });
+  }
+};
+
 // 删除评论
 export const deleteComment = async (req, res) => {
   try {

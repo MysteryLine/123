@@ -10,6 +10,9 @@ export default function PostsPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const pageSize = 10;
 
     useEffect(() => {
         const fetchData = async () => {
@@ -25,10 +28,11 @@ export default function PostsPage() {
                     }
                 }
 
-                // 获取帖子列表
-                const response = await api.posts.getAll();
+                // 获取帖子列表（分页）
+                const response = await api.posts.getAll(currentPage, pageSize);
                 if (response.data.success) {
                     setPosts(response.data.posts || []);
+                    setTotalPages(response.data.pagination.totalPages);
                 } else {
                     setError(response.data.message || '获取帖子失败');
                 }
@@ -39,7 +43,7 @@ export default function PostsPage() {
             }
         };
         fetchData();
-    }, []);
+    }, [currentPage]);
 
     const handleLikePost = async (postId: string) => {
         if (!currentUserId) {
@@ -76,11 +80,13 @@ export default function PostsPage() {
                             <div key={p._id} style={{ background: '#fff', borderRadius: 12, boxShadow: '0 2px 16px #e0e7ef', padding: '1.5rem' }}>
                                 {/* 作者信息 */}
                                 <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1rem' }}>
-                                    <Avatar src={p.author?.avatar} username={p.author?.username || '匿名'} size="medium" />
-                                    <div style={{ marginLeft: '0.75rem' }}>
-                                        <div style={{ fontWeight: 600, color: '#222' }}>{p.author?.username || '匿名'}</div>
-                                        <div style={{ fontSize: '0.85rem', color: '#888' }}>{new Date(p.createdAt).toLocaleString()}</div>
-                                    </div>
+                                    <Link href={`/profile/${p.author._id}`} style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                        <Avatar src={p.author?.avatar} username={p.author?.username || '匿名'} size="medium" />
+                                        <div style={{ marginLeft: '0.75rem' }}>
+                                            <div style={{ fontWeight: 600, color: '#222' }}>{p.author?.username || '匿名'}</div>
+                                            <div style={{ fontSize: '0.85rem', color: '#888' }}>{new Date(p.createdAt).toLocaleString()}</div>
+                                        </div>
+                                    </Link>
                                 </div>
 
                                 {/* 帖子标题（可点击） */}
@@ -129,6 +135,59 @@ export default function PostsPage() {
                                 </div>
                             </div>
                         ))}
+                    </div>
+                )}
+
+                {/* 分页控件 */}
+                {totalPages > 1 && (
+                    <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', marginTop: '2rem', alignItems: 'center' }}>
+                        <button
+                            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                            disabled={currentPage === 1}
+                            style={{
+                                padding: '0.5rem 1rem',
+                                border: '1px solid #ddd',
+                                borderRadius: 6,
+                                background: currentPage === 1 ? '#f5f5f5' : '#fff',
+                                cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+                                opacity: currentPage === 1 ? 0.5 : 1,
+                            }}
+                        >
+                            上一页
+                        </button>
+
+                        {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                            <button
+                                key={page}
+                                onClick={() => setCurrentPage(page)}
+                                style={{
+                                    padding: '0.5rem 0.75rem',
+                                    border: '1px solid #ddd',
+                                    borderRadius: 6,
+                                    background: currentPage === page ? '#0ea5ff' : '#fff',
+                                    color: currentPage === page ? '#fff' : '#333',
+                                    cursor: 'pointer',
+                                    fontWeight: currentPage === page ? '600' : '400',
+                                }}
+                            >
+                                {page}
+                            </button>
+                        ))}
+
+                        <button
+                            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                            disabled={currentPage === totalPages}
+                            style={{
+                                padding: '0.5rem 1rem',
+                                border: '1px solid #ddd',
+                                borderRadius: 6,
+                                background: currentPage === totalPages ? '#f5f5f5' : '#fff',
+                                cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
+                                opacity: currentPage === totalPages ? 0.5 : 1,
+                            }}
+                        >
+                            下一页
+                        </button>
                     </div>
                 )}
             </div>
