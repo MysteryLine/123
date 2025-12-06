@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Avatar from './Avatar';
@@ -12,6 +12,7 @@ const Navbar: React.FC = () => {
     const router = useRouter();
     const [user, setUser] = useState<any>(null);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const menuRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const fetchUser = async () => {
@@ -30,6 +31,20 @@ const Navbar: React.FC = () => {
         };
         fetchUser();
     }, []);
+
+    // 点击外部关闭菜单
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+                setIsMenuOpen(false);
+            }
+        };
+
+        if (isMenuOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [isMenuOpen]);
 
     const handleLogout = () => {
         localStorage.removeItem('token');
@@ -90,7 +105,7 @@ const Navbar: React.FC = () => {
                             <NotificationBell />
 
                             {/* 用户菜单 */}
-                            <div style={{ position: 'relative' }}>
+                            <div style={{ position: 'relative' }} ref={menuRef}>
                                 <div
                                     onClick={() => setIsMenuOpen(!isMenuOpen)}
                                     style={{

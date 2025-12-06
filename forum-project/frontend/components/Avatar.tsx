@@ -31,14 +31,14 @@ const Avatar: React.FC<AvatarProps> = ({
     // 生成随机背景色（基于用户名）
     const getBackgroundColor = (name: string) => {
         const colors = [
-            'bg-blue-500',
-            'bg-green-500',
-            'bg-yellow-500',
-            'bg-red-500',
-            'bg-purple-500',
-            'bg-pink-500',
-            'bg-indigo-500',
-            'bg-teal-500',
+            'bg-gradient-to-br from-purple-400 to-purple-600',
+            'bg-gradient-to-br from-cyan-400 to-blue-600',
+            'bg-gradient-to-br from-pink-400 to-rose-600',
+            'bg-gradient-to-br from-green-400 to-emerald-600',
+            'bg-gradient-to-br from-orange-400 to-red-600',
+            'bg-gradient-to-br from-yellow-400 to-amber-600',
+            'bg-gradient-to-br from-indigo-400 to-purple-600',
+            'bg-gradient-to-br from-fuchsia-400 to-pink-600',
         ];
         const index = name.charCodeAt(0) % colors.length;
         return colors[index];
