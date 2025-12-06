@@ -105,18 +105,18 @@ const Navbar: React.FC = () => {
                                         username={user.username}
                                         size="small"
                                         editable={false}
-                                />
-                                <span style={{ fontWeight: 500, color: '#333' }}>{user.username}</span>
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    style={{ width: 16, height: 16, transition: 'transform 0.2s', transform: isMenuOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                >
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                </svg>
-                            </div>
+                                    />
+                                    <span style={{ fontWeight: 500, color: '#333' }}>{user.username}</span>
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        style={{ width: 16, height: 16, transition: 'transform 0.2s', transform: isMenuOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                    >
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </div>
 
                                 {isMenuOpen && (
                                     <div style={{

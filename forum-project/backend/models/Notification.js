@@ -1,40 +1,40 @@
 import mongoose from 'mongoose';
 
 const notificationSchema = new mongoose.Schema(
-  {
-    recipient: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      required: true,
-      index: true,
+    {
+        recipient: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User',
+            required: true,
+            index: true,
+        },
+        sender: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User',
+            required: true,
+        },
+        type: {
+            type: String,
+            enum: ['comment', 'like', 'follow', 'post_like', 'comment_like'],
+            required: true,
+        },
+        post: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Post',
+        },
+        comment: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Comment',
+        },
+        isRead: {
+            type: Boolean,
+            default: false,
+            index: true,
+        },
     },
-    sender: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      required: true,
-    },
-    type: {
-      type: String,
-      enum: ['comment', 'like', 'follow', 'post_like', 'comment_like'],
-      required: true,
-    },
-    post: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Post',
-    },
-    comment: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Comment',
-    },
-    isRead: {
-      type: Boolean,
-      default: false,
-      index: true,
-    },
-  },
-  {
-    timestamps: true,
-  }
+    {
+        timestamps: true,
+    }
 );
 
 // 复合索引优化查询
