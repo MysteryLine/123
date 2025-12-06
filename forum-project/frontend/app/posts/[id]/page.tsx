@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Avatar from '@/components/Avatar';
-import InteractionButton from '@/components/InteractionButton';
+import LikeButton from '@/components/LikeButton';
 import ImageUpload from '@/components/ImageUpload';
 import { api } from '@/lib/apiClient';
 
@@ -197,247 +197,589 @@ export default function PostDetailPage() {
     const isPostAuthor = currentUserId === post.author?._id || currentUserId === post.author?.id;
 
     return (
-        <main style={{ padding: '2rem', background: '#f7f8fa', minHeight: '100vh' }}>
-            <div style={{ maxWidth: 800, margin: '0 auto' }}>
-                {/* 帖子内容 */}
-                <div style={{ background: '#fff', borderRadius: 12, boxShadow: '0 2px 16px #e0e7ef', padding: '2rem', marginBottom: '2rem' }}>
-                    {/* 作者信息和操作按钮 */}
-                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: '1px solid #eee' }}>
-                        <Avatar src={post.author?.avatar} username={post.author?.username || '匿名'} size="medium" />
-                        <div style={{ marginLeft: '0.75rem', flex: 1 }}>
-                            <div style={{ fontWeight: 600, color: '#222', fontSize: '1.05rem' }}>{post.author?.username || '匿名'}</div>
-                            <div style={{ fontSize: '0.85rem', color: '#888' }}>{new Date(post.createdAt).toLocaleString()}</div>
+        <main style={styles.main}>
+            {/* 返回按钮 */}
+            <div style={styles.backBar}>
+                <button onClick={() => router.back()} style={styles.backButton}>← 返回</button>
+            </div>
+
+            <div style={styles.container}>
+                {/* 帖子卡片 */}
+                <article style={styles.postCard}>
+                    {/* 作者信息 */}
+                    <div style={styles.authorHeader}>
+                        <div style={styles.authorInfo}>
+                            <Avatar src={post.author?.avatar} username={post.author?.username || '匿名'} size="large" />
+                            <div style={styles.authorMeta}>
+                                <h3 style={styles.authorName}>{post.author?.username || '匿名'}</h3>
+                                <p style={styles.postDate}>{new Date(post.createdAt).toLocaleString()}</p>
+                                {post.updatedAt !== post.createdAt && (
+                                    <p style={styles.editedDate}>已编辑</p>
+                                )}
+                            </div>
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#666', fontSize: '0.9rem' }}>
-                            <span>👁️ {post.views || 0} 浏览</span>
-                            {isPostAuthor && (
-                                <>
-                                    <button
-                                        onClick={() => {
-                                            setIsEditingPost(!isEditingPost);
-                                            if (!isEditingPost) {
-                                                setEditPostData({
-                                                    title: post.title,
-                                                    content: post.content,
-                                                    images: post.images || []
-                                                });
-                                            }
-                                        }}
-                                        style={{ padding: '0.3rem 0.6rem', background: '#4f46e5', color: '#fff', border: 'none', borderRadius: '4px', fontSize: '0.8rem', cursor: 'pointer' }}
-                                    >
-                                        ✏️ 编辑
-                                    </button>
-                                    <button
-                                        onClick={handleDeletePost}
-                                        style={{ padding: '0.3rem 0.6rem', background: '#f87171', color: '#fff', border: 'none', borderRadius: '4px', fontSize: '0.8rem', cursor: 'pointer' }}
-                                    >
-                                        🗑️ 删除
-                                    </button>
-                                </>
-                            )}
-                        </div>
+                        {isPostAuthor && (
+                            <div style={styles.postActions}>
+                                <button onClick={() => setIsEditingPost(true)} style={styles.editButton}>编辑</button>
+                                <button onClick={handleDeletePost} style={styles.deleteButton}>删除</button>
+                            </div>
+                        )}
                     </div>
 
-                    {!isEditingPost ? (
-                        <>
-                            {/* 标题和内容 */}
-                            <h1 style={{ fontWeight: 700, fontSize: '1.8rem', marginBottom: '1.5rem', color: '#111' }}>{post.title}</h1>
-                            <article style={{ lineHeight: 1.8, fontSize: '1.1rem', color: '#222', whiteSpace: 'pre-wrap', marginBottom: '1.5rem' }}>{post.content}</article>
+                    {/* 帖子内容 */}
+                    {isEditingPost ? (
+                        <div style={styles.editForm}>
+                            <input
+                                type="text"
+                                value={editPostData.title}
+                                onChange={(e) => setEditPostData({ ...editPostData, title: e.target.value })}
+                                style={styles.editInput}
+                                placeholder="标题"
+                            />
+                            <textarea
+                                value={editPostData.content}
+                                onChange={(e) => setEditPostData({ ...editPostData, content: e.target.value })}
+                                style={styles.editTextarea}
+                                placeholder="内容"
+                            />
+                            <ImageUpload onImagesChange={(imgs: string[]) => setEditPostData({ ...editPostData, images: imgs })} />
+                            <div style={styles.editButtons}>
+                                <button onClick={handleEditPost} disabled={isEditingPostSubmitting} style={styles.saveButton}>
+                                    {isEditingPostSubmitting ? '保存中...' : '保存'}
+                                </button>
+                                <button onClick={() => setIsEditingPost(false)} style={styles.cancelButton}>取消</button>
+                            </div>
+                        </div>
+                    ) : (
+                        <div style={styles.postContent}>
+                            <h1 style={styles.postTitle}>{post.title}</h1>
+                            <p style={styles.postText}>{post.content}</p>
 
                             {/* 帖子图片 */}
                             {post.images && post.images.length > 0 && (
-                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '0.75rem', marginBottom: '1.5rem' }}>
+                                <div style={styles.imageGallery}>
                                     {post.images.map((img: string, idx: number) => (
-                                        <img key={idx} src={img} alt={`图片 ${idx + 1}`} style={{ width: '100%', height: '200px', objectFit: 'cover', borderRadius: 8, cursor: 'pointer' }} onClick={() => window.open(img, '_blank')} />
+                                        <img key={idx} src={img} alt={`图片 ${idx + 1}`} style={styles.galleryImage} />
                                     ))}
                                 </div>
                             )}
-                        </>
-                    ) : (
-                        <>
-                            {/* 编辑表单 */}
-                            <div style={{ marginBottom: '1.5rem' }}>
-                                <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: '500', color: '#333', marginBottom: '0.5rem' }}>标题</label>
-                                <input
-                                    type="text"
-                                    value={editPostData.title}
-                                    onChange={(e) => setEditPostData({ ...editPostData, title: e.target.value })}
-                                    style={{ width: '100%', padding: '0.75rem', border: '1px solid #ddd', borderRadius: '8px', fontSize: '1rem', boxSizing: 'border-box', marginBottom: '1rem' }}
-                                />
-
-                                <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: '500', color: '#333', marginBottom: '0.5rem' }}>内容</label>
-                                <textarea
-                                    value={editPostData.content}
-                                    onChange={(e) => setEditPostData({ ...editPostData, content: e.target.value })}
-                                    rows={8}
-                                    style={{ width: '100%', padding: '0.75rem', border: '1px solid #ddd', borderRadius: '8px', fontSize: '1rem', boxSizing: 'border-box', marginBottom: '1rem', fontFamily: 'inherit' }}
-                                />
-
-                                <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: '500', color: '#333', marginBottom: '0.5rem' }}>图片</label>
-                                <ImageUpload onImagesChange={(imgs) => setEditPostData({ ...editPostData, images: imgs })} maxImages={9} existingImages={editPostData.images} />
-                            </div>
-
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                                <button
-                                    onClick={handleEditPost}
-                                    disabled={isEditingPostSubmitting}
-                                    style={{ padding: '0.75rem', background: '#4f46e5', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: isEditingPostSubmitting ? 'not-allowed' : 'pointer', opacity: isEditingPostSubmitting ? 0.6 : 1 }}
-                                >
-                                    {isEditingPostSubmitting ? '保存中...' : '💾 保存'}
-                                </button>
-                                <button
-                                    onClick={() => setIsEditingPost(false)}
-                                    style={{ padding: '0.75rem', background: '#e5e7eb', color: '#374151', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer' }}
-                                >
-                                    取消
-                                </button>
-                            </div>
-                        </>
+                        </div>
                     )}
 
-                    {/* 互动按钮 */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', paddingTop: '1rem', borderTop: '1px solid #f0f0f0', marginTop: '1.5rem' }}>
-                        <InteractionButton
-                            initialLikeCount={post.likes?.length || 0}
-                            initialUserLiked={currentUserId ? post.likes?.includes(currentUserId) : false}
-                            onLike={handleLikePost}
-                            size="medium"
+                    {/* 互动栏 */}
+                    <div style={styles.interactionBar}>
+                        <LikeButton
+                            initialCount={post.likes?.length || 0}
+                            initialIsLiked={currentUserId ? post.likes?.includes(currentUserId) : false}
+                            onToggle={handleLikePost}
                         />
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#666', fontSize: '0.95rem' }}>
-                            <span>💬 {comments.length} 评论</span>
+                        <div style={styles.stat}>
+                            <span>💬</span>
+                            <span>{comments.length} 评论</span>
+                        </div>
+                        <div style={styles.stat}>
+                            <span>👁️</span>
+                            <span>{post.views || 0} 浏览</span>
                         </div>
                     </div>
-                </div>
+                </article>
 
-                {/* 评论区标题 */}
-                <h2 style={{ fontWeight: 700, fontSize: '1.2rem', marginBottom: '1rem' }}>评论区 ({comments.length})</h2>
+                {/* 评论区 */}
+                <section style={styles.commentsSection}>
+                    <h2 style={styles.commentsTitle}>评论 ({comments.length})</h2>
 
-                {/* 发表评论表单 */}
-                <div style={{ background: '#fff', borderRadius: 12, boxShadow: '0 2px 16px #e0e7ef', padding: '1.5rem', marginBottom: '2rem' }}>
-                    <form onSubmit={handleAddComment}>
-                        <textarea
-                            value={commentContent}
-                            onChange={(e) => setCommentContent(e.target.value)}
-                            placeholder="分享你的想法..."
-                            rows={4}
-                            style={{ width: '100%', padding: '0.8rem', borderRadius: 8, border: '1px solid #e6e6e6', fontSize: '1rem', boxSizing: 'border-box', marginBottom: '1rem', fontFamily: 'inherit' }}
-                        />
-
-                        <div style={{ padding: '1rem', background: '#f9fafb', borderRadius: 8, border: '1px solid #e6e6e6', marginBottom: '1rem' }}>
-                            <h4 style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.5rem', color: '#666' }}>添加图片（可选）</h4>
-                            <ImageUpload onImagesChange={setCommentImages} maxImages={6} existingImages={commentImages} />
+                    {/* 发表评论表单 */}
+                    <form onSubmit={handleAddComment} style={styles.commentForm}>
+                        <div style={styles.commentInputWrapper}>
+                            <Avatar src={null} username="你" size="medium" />
+                            <textarea
+                                value={commentContent}
+                                onChange={(e) => setCommentContent(e.target.value)}
+                                placeholder="分享你的想法..."
+                                style={styles.commentInput}
+                            />
                         </div>
-
-                        <button
-                            type="submit"
-                            disabled={submitting || !commentContent.trim()}
-                            style={{ padding: '0.6rem 1.2rem', background: '#0ea5ff', color: '#fff', border: 'none', borderRadius: 8, fontWeight: 600, cursor: 'pointer' }}>
-                            {submitting ? '发表中...' : '发表评论'}
-                        </button>
+                        {commentImages.length > 0 && (
+                            <div style={styles.selectedImages}>
+                                {commentImages.map((img, idx) => (
+                                    <div key={idx} style={styles.selectedImageWrapper}>
+                                        <img src={img} alt={`选中 ${idx + 1}`} style={styles.selectedImage} />
+                                        <button
+                                            type="button"
+                                            onClick={() => setCommentImages(commentImages.filter((_, i) => i !== idx))}
+                                            style={styles.removeImageBtn}
+                                        >
+                                            ✕
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                        <div style={styles.commentFormFooter}>
+                            <ImageUpload onImagesChange={(imgs: string[]) => setCommentImages(imgs)} />
+                            <button type="submit" disabled={submitting || !commentContent.trim()} style={styles.submitButton}>
+                                {submitting ? '发表中...' : '发表评论'}
+                            </button>
+                        </div>
                     </form>
-                </div>
 
-                {/* 评论列表 */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                    {comments.length === 0 ? (
-                        <div style={{ background: '#fff', borderRadius: 12, padding: '2rem', textAlign: 'center', color: '#888' }}>暂无评论，来发表第一条吧~</div>
-                    ) : (
-                        comments.map((c) => {
-                            const isCommentAuthor = currentUserId === c.author?._id || currentUserId === c.author?.id;
-                            const isEditingThisComment = editingCommentId === c._id;
-
-                            return (
-                                <div key={c._id} style={{ background: '#fff', borderRadius: 12, boxShadow: '0 2px 16px #e0e7ef', padding: '1.5rem' }}>
-                                    {/* 评论者信息 */}
-                                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '0.75rem', justifyContent: 'space-between' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center' }}>
-                                            <Avatar src={c.author?.avatar} username={c.author?.username || '匿名'} size="small" />
-                                            <div style={{ marginLeft: '0.5rem', flex: 1 }}>
-                                                <div style={{ fontWeight: 600, color: '#222', fontSize: '0.95rem' }}>{c.author?.username || '匿名'}</div>
-                                                <div style={{ color: '#999', fontSize: '0.8rem' }}>{new Date(c.createdAt).toLocaleString()}</div>
+                    {/* 评论列表 */}
+                    <div style={styles.commentsList}>
+                        {comments.length === 0 ? (
+                            <div style={styles.noComments}>暂无评论，抢沙发~</div>
+                        ) : (
+                            comments.map((comment) => (
+                                <div key={comment._id} style={styles.commentItem}>
+                                    <div style={styles.commentHeader}>
+                                        <div style={styles.commentAuthor}>
+                                            <Avatar src={comment.author?.avatar} username={comment.author?.username || '匿名'} size="small" />
+                                            <div>
+                                                <h4 style={styles.commentAuthorName}>{comment.author?.username || '匿名'}</h4>
+                                                <p style={styles.commentTime}>{new Date(comment.createdAt).toLocaleString()}</p>
                                             </div>
                                         </div>
-                                        {isCommentAuthor && (
-                                            <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                                <button
-                                                    onClick={() => handleEditComment(c)}
-                                                    style={{ padding: '0.3rem 0.6rem', background: '#4f46e5', color: '#fff', border: 'none', borderRadius: '4px', fontSize: '0.8rem', cursor: 'pointer' }}
-                                                >
-                                                    ✏️
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDeleteComment(c._id)}
-                                                    style={{ padding: '0.3rem 0.6rem', background: '#f87171', color: '#fff', border: 'none', borderRadius: '4px', fontSize: '0.8rem', cursor: 'pointer' }}
-                                                >
-                                                    🗑️
-                                                </button>
+                                        {(currentUserId === comment.author?._id || currentUserId === comment.author?.id) && (
+                                            <div style={styles.commentActions}>
+                                                <button onClick={() => handleEditComment(comment)} style={styles.actionBtn}>编辑</button>
+                                                <button onClick={() => handleDeleteComment(comment._id)} style={styles.actionBtn}>删除</button>
                                             </div>
                                         )}
                                     </div>
 
-                                    {!isEditingThisComment ? (
+                                    {editingCommentId === comment._id ? (
+                                        <div style={styles.editCommentForm}>
+                                            <textarea
+                                                value={editCommentData.content}
+                                                onChange={(e) => setEditCommentData({ ...editCommentData, content: e.target.value })}
+                                                style={styles.editCommentInput}
+                                            />
+                                            <div style={styles.editCommentButtons}>
+                                                <button onClick={() => handleSaveCommentEdit(comment._id)} disabled={isEditingCommentSubmitting} style={styles.saveBtn}>
+                                                    {isEditingCommentSubmitting ? '保存中...' : '保存'}
+                                                </button>
+                                                <button onClick={() => setEditingCommentId(null)} style={styles.cancelBtn}>取消</button>
+                                            </div>
+                                        </div>
+                                    ) : (
                                         <>
-                                            {/* 评论内容 */}
-                                            <div style={{ color: '#333', lineHeight: 1.6, whiteSpace: 'pre-wrap', marginBottom: '0.75rem', marginLeft: '2.5rem' }}>{c.content}</div>
-
-                                            {/* 评论图片 */}
-                                            {c.images && c.images.length > 0 && (
-                                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: '0.5rem', marginBottom: '0.75rem', marginLeft: '2.5rem' }}>
-                                                    {c.images.map((img: string, idx: number) => (
-                                                        <img key={idx} src={img} alt={`图片 ${idx + 1}`} style={{ width: '100%', height: '120px', objectFit: 'cover', borderRadius: 6, cursor: 'pointer' }} onClick={() => window.open(img, '_blank')} />
+                                            <p style={styles.commentText}>{comment.content}</p>
+                                            {comment.images && comment.images.length > 0 && (
+                                                <div style={styles.commentImages}>
+                                                    {comment.images.map((img: string, idx: number) => (
+                                                        <img key={idx} src={img} alt={`评论图片 ${idx + 1}`} style={styles.commentImage} />
                                                     ))}
                                                 </div>
                                             )}
-
-                                            {/* 评论互动按钮 */}
-                                            <div style={{ marginLeft: '2.5rem' }}>
-                                                <InteractionButton
-                                                    initialLikeCount={c.likes?.length || 0}
-                                                    initialUserLiked={currentUserId ? c.likes?.includes(currentUserId) : false}
-                                                    onLike={() => handleLikeComment(c._id)}
-                                                    size="small"
-                                                />
-                                            </div>
-                                        </>
-                                    ) : (
-                                        <>
-                                            {/* 编辑评论表单 */}
-                                            <div style={{ marginLeft: '2.5rem' }}>
-                                                <textarea
-                                                    value={editCommentData.content}
-                                                    onChange={(e) => setEditCommentData({ ...editCommentData, content: e.target.value })}
-                                                    rows={3}
-                                                    style={{ width: '100%', padding: '0.75rem', border: '1px solid #ddd', borderRadius: '8px', fontSize: '1rem', boxSizing: 'border-box', marginBottom: '1rem', fontFamily: 'inherit' }}
-                                                />
-
-                                                <div style={{ marginBottom: '1rem' }}>
-                                                    <ImageUpload onImagesChange={(imgs) => setEditCommentData({ ...editCommentData, images: imgs })} maxImages={6} existingImages={editCommentData.images} />
-                                                </div>
-
-                                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
-                                                    <button
-                                                        onClick={() => handleSaveCommentEdit(c._id)}
-                                                        disabled={isEditingCommentSubmitting}
-                                                        style={{ padding: '0.6rem', background: '#4f46e5', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: '600', cursor: isEditingCommentSubmitting ? 'not-allowed' : 'pointer', fontSize: '0.9rem' }}
-                                                    >
-                                                        {isEditingCommentSubmitting ? '保存中...' : '保存'}
-                                                    </button>
-                                                    <button
-                                                        onClick={() => setEditingCommentId(null)}
-                                                        style={{ padding: '0.6rem', background: '#e5e7eb', color: '#374151', border: 'none', borderRadius: '6px', fontWeight: '600', cursor: 'pointer', fontSize: '0.9rem' }}
-                                                    >
-                                                        取消
-                                                    </button>
-                                                </div>
-                                            </div>
                                         </>
                                     )}
+
+                                    <div style={styles.commentInteraction}>
+                                        <LikeButton
+                                            initialCount={comment.likes?.length || 0}
+                                            initialIsLiked={currentUserId ? comment.likes?.includes(currentUserId) : false}
+                                            onToggle={() => handleLikeComment(comment._id)}
+                                            size="small"
+                                        />
+                                    </div>
                                 </div>
-                            );
-                        })
-                    )}
-                </div>
+                            ))
+                        )}
+                    </div>
+                </section>
             </div>
+
+            <style jsx>{`
+                @keyframes slideIn {
+                    from {
+                        opacity: 0;
+                        transform: translateY(10px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
+                }
+                
+                main > div:first-child {
+                    animation: slideIn 0.4s ease-out;
+                }
+            `}</style>
         </main>
     );
 }
+
+const styles: Record<string, React.CSSProperties> = {
+    main: {
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #f5f7ff 0%, #fef3f8 100%)',
+        padding: '2rem 0',
+    },
+    backBar: {
+        padding: '1rem 2rem',
+        maxWidth: 900,
+        margin: '0 auto',
+    },
+    backButton: {
+        padding: '0.5rem 1rem',
+        background: 'rgba(255,255,255,0.7)',
+        border: '1px solid rgba(0,0,0,0.1)',
+        borderRadius: '8px',
+        cursor: 'pointer',
+        fontSize: '1rem',
+        fontWeight: 600,
+        color: '#333',
+        transition: 'all 0.2s',
+    } as React.CSSProperties,
+    container: {
+        maxWidth: 900,
+        margin: '0 auto',
+        padding: '0 2rem',
+    },
+    postCard: {
+        background: '#fff',
+        borderRadius: '16px',
+        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+        padding: '2rem',
+        marginBottom: '2rem',
+        border: '1px solid rgba(0, 0, 0, 0.05)',
+    },
+    authorHeader: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+        marginBottom: '2rem',
+        paddingBottom: '1.5rem',
+        borderBottom: '1px solid rgba(0, 0, 0, 0.05)',
+    },
+    authorInfo: {
+        display: 'flex',
+        gap: '1rem',
+        alignItems: 'flex-start',
+    } as React.CSSProperties,
+    authorMeta: {
+        flex: 1,
+    },
+    authorName: {
+        fontSize: '1.1rem',
+        fontWeight: 700,
+        color: '#1a1a1a',
+        margin: 0,
+    },
+    postDate: {
+        fontSize: '0.9rem',
+        color: '#888',
+        margin: '0.25rem 0 0 0',
+    },
+    editedDate: {
+        fontSize: '0.8rem',
+        color: '#999',
+        fontStyle: 'italic',
+        margin: '0.25rem 0 0 0',
+    },
+    postActions: {
+        display: 'flex',
+        gap: '0.5rem',
+    } as React.CSSProperties,
+    editButton: {
+        padding: '0.5rem 1rem',
+        background: '#667eea',
+        color: '#fff',
+        border: 'none',
+        borderRadius: '6px',
+        cursor: 'pointer',
+        fontWeight: 600,
+        fontSize: '0.9rem',
+    } as React.CSSProperties,
+    deleteButton: {
+        padding: '0.5rem 1rem',
+        background: '#ff6b6b',
+        color: '#fff',
+        border: 'none',
+        borderRadius: '6px',
+        cursor: 'pointer',
+        fontWeight: 600,
+        fontSize: '0.9rem',
+    } as React.CSSProperties,
+    postContent: {},
+    postTitle: {
+        fontSize: '2rem',
+        fontWeight: 800,
+        color: '#1a1a1a',
+        margin: '0 0 1rem 0',
+        lineHeight: 1.4,
+    },
+    postText: {
+        fontSize: '1.05rem',
+        color: '#333',
+        lineHeight: 1.8,
+        margin: '0 0 1.5rem 0',
+        whiteSpace: 'pre-wrap',
+        wordBreak: 'break-word',
+    },
+    imageGallery: {
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+        gap: '1rem',
+        marginTop: '1.5rem',
+    },
+    galleryImage: {
+        width: '100%',
+        height: '300px',
+        objectFit: 'cover',
+        borderRadius: '12px',
+        cursor: 'pointer',
+    } as React.CSSProperties,
+    interactionBar: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '2rem',
+        paddingTop: '1.5rem',
+        borderTop: '1px solid rgba(0, 0, 0, 0.05)',
+        marginTop: '1.5rem',
+    },
+    stat: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.5rem',
+        fontSize: '1rem',
+        color: '#666',
+    } as React.CSSProperties,
+    editForm: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '1rem',
+    } as React.CSSProperties,
+    editInput: {
+        padding: '0.8rem',
+        border: '1px solid #ddd',
+        borderRadius: '8px',
+        fontSize: '1rem',
+        fontFamily: 'inherit',
+    } as React.CSSProperties,
+    editTextarea: {
+        padding: '0.8rem',
+        border: '1px solid #ddd',
+        borderRadius: '8px',
+        fontSize: '1rem',
+        fontFamily: 'inherit',
+        minHeight: '200px',
+        resize: 'vertical',
+    } as React.CSSProperties,
+    editButtons: {
+        display: 'flex',
+        gap: '0.5rem',
+    } as React.CSSProperties,
+    saveButton: {
+        padding: '0.6rem 1.2rem',
+        background: '#667eea',
+        color: '#fff',
+        border: 'none',
+        borderRadius: '6px',
+        cursor: 'pointer',
+        fontWeight: 600,
+    } as React.CSSProperties,
+    cancelButton: {
+        padding: '0.6rem 1.2rem',
+        background: '#ddd',
+        color: '#333',
+        border: 'none',
+        borderRadius: '6px',
+        cursor: 'pointer',
+        fontWeight: 600,
+    } as React.CSSProperties,
+    commentsSection: {
+        background: '#fff',
+        borderRadius: '16px',
+        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+        padding: '2rem',
+        border: '1px solid rgba(0, 0, 0, 0.05)',
+    },
+    commentsTitle: {
+        fontSize: '1.3rem',
+        fontWeight: 700,
+        color: '#1a1a1a',
+        margin: '0 0 2rem 0',
+    },
+    commentForm: {
+        marginBottom: '2rem',
+        paddingBottom: '2rem',
+        borderBottom: '1px solid rgba(0, 0, 0, 0.05)',
+    },
+    commentInputWrapper: {
+        display: 'flex',
+        gap: '1rem',
+        marginBottom: '1rem',
+    } as React.CSSProperties,
+    commentInput: {
+        flex: 1,
+        padding: '0.8rem',
+        border: '1px solid #ddd',
+        borderRadius: '8px',
+        fontSize: '1rem',
+        fontFamily: 'inherit',
+        minHeight: '100px',
+        resize: 'vertical',
+    } as React.CSSProperties,
+    selectedImages: {
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))',
+        gap: '0.5rem',
+        marginBottom: '1rem',
+    },
+    selectedImageWrapper: {
+        position: 'relative',
+        width: '80px',
+        height: '80px',
+    } as React.CSSProperties,
+    selectedImage: {
+        width: '100%',
+        height: '100%',
+        objectFit: 'cover',
+        borderRadius: '4px',
+    } as React.CSSProperties,
+    removeImageBtn: {
+        position: 'absolute',
+        top: '-8px',
+        right: '-8px',
+        width: '24px',
+        height: '24px',
+        background: '#ff6b6b',
+        color: '#fff',
+        border: 'none',
+        borderRadius: '50%',
+        cursor: 'pointer',
+        fontWeight: 700,
+    } as React.CSSProperties,
+    commentFormFooter: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        gap: '1rem',
+    } as React.CSSProperties,
+    submitButton: {
+        padding: '0.6rem 1.5rem',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        color: '#fff',
+        border: 'none',
+        borderRadius: '8px',
+        cursor: 'pointer',
+        fontWeight: 600,
+        transition: 'all 0.2s',
+    } as React.CSSProperties,
+    commentsList: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '1.5rem',
+    } as React.CSSProperties,
+    commentItem: {
+        padding: '1.5rem',
+        background: '#f9fafb',
+        borderRadius: '12px',
+        border: '1px solid rgba(0, 0, 0, 0.05)',
+    },
+    commentHeader: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+        marginBottom: '0.75rem',
+    },
+    commentAuthor: {
+        display: 'flex',
+        gap: '0.75rem',
+        alignItems: 'flex-start',
+    } as React.CSSProperties,
+    commentAuthorName: {
+        fontSize: '0.95rem',
+        fontWeight: 700,
+        color: '#1a1a1a',
+        margin: 0,
+    },
+    commentTime: {
+        fontSize: '0.8rem',
+        color: '#888',
+        margin: '0.25rem 0 0 0',
+    },
+    commentActions: {
+        display: 'flex',
+        gap: '0.5rem',
+    } as React.CSSProperties,
+    actionBtn: {
+        padding: '0.4rem 0.8rem',
+        background: 'transparent',
+        border: '1px solid #ddd',
+        borderRadius: '4px',
+        cursor: 'pointer',
+        fontSize: '0.85rem',
+        color: '#666',
+        fontWeight: 600,
+    } as React.CSSProperties,
+    commentText: {
+        margin: '0 0 0.75rem 0',
+        fontSize: '1rem',
+        color: '#333',
+        lineHeight: 1.6,
+        whiteSpace: 'pre-wrap',
+        wordBreak: 'break-word',
+    },
+    commentImages: {
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))',
+        gap: '0.5rem',
+        marginTop: '0.75rem',
+    },
+    commentImage: {
+        width: '100%',
+        height: '100px',
+        objectFit: 'cover',
+        borderRadius: '6px',
+    } as React.CSSProperties,
+    commentInteraction: {
+        marginTop: '0.75rem',
+        paddingTop: '0.75rem',
+        borderTop: '1px solid rgba(0, 0, 0, 0.05)',
+    },
+    noComments: {
+        textAlign: 'center',
+        padding: '3rem 0',
+        color: '#999',
+        fontSize: '1rem',
+    },
+    editCommentForm: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '0.75rem',
+        marginBottom: '1rem',
+    } as React.CSSProperties,
+    editCommentInput: {
+        padding: '0.6rem',
+        border: '1px solid #ddd',
+        borderRadius: '6px',
+        fontSize: '0.95rem',
+        fontFamily: 'inherit',
+        minHeight: '80px',
+    } as React.CSSProperties,
+    editCommentButtons: {
+        display: 'flex',
+        gap: '0.5rem',
+    } as React.CSSProperties,
+    saveBtn: {
+        padding: '0.4rem 0.8rem',
+        background: '#667eea',
+        color: '#fff',
+        border: 'none',
+        borderRadius: '4px',
+        cursor: 'pointer',
+        fontWeight: 600,
+        fontSize: '0.85rem',
+    } as React.CSSProperties,
+    cancelBtn: {
+        padding: '0.4rem 0.8rem',
+        background: '#ddd',
+        color: '#333',
+        border: 'none',
+        borderRadius: '4px',
+        cursor: 'pointer',
+        fontWeight: 600,
+        fontSize: '0.85rem',
+    } as React.CSSProperties,
+};

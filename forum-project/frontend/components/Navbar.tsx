@@ -76,7 +76,7 @@ const Navbar: React.FC = () => {
                         color: '#0ea5ff',
                         cursor: 'pointer',
                     }}>
-                        📝 论坛社区
+                        🌼 菊园
                     </div>
                 </LoadingLink>
 

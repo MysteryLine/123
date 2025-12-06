@@ -4,8 +4,8 @@ import { LoadingProvider } from '@/components/LoadingContext';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: '论坛社区',
-  description: '一个现代化的论坛社区网站',
+  title: '菊园 - 社区论坛',
+  description: '菊园：一个现代化的社区论坛，分享观点，交流想法',
 };
 
 export default function RootLayout({
