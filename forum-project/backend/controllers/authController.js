@@ -1,5 +1,6 @@
 import User from '../models/User.js';
 import jwt from 'jsonwebtoken';
+import { createNotification } from './notificationController.js';
 
 // 用户注册
 export const register = async (req, res) => {
@@ -307,6 +308,9 @@ export const followUser = async (req, res) => {
 
     await currentUser.save();
     await targetUser.save();
+
+    // 创建通知（通知被关注的用户）
+    await createNotification(targetUserId, currentUserId, 'follow');
 
     res.status(200).json({
       success: true,

@@ -76,6 +76,20 @@ export const api = {
     uploadAvatar: (avatarBase64: string) =>
       apiClient.post('/upload/avatar', { avatarBase64 }),
   },
+
+  // 通知相关
+  notifications: {
+    getAll: (limit: number = 20, skip: number = 0) =>
+      apiClient.get(`/notifications?limit=${limit}&skip=${skip}`),
+    getUnreadCount: () =>
+      apiClient.get('/notifications/unread-count'),
+    markAsRead: (notificationId: string) =>
+      apiClient.put(`/notifications/${notificationId}/read`),
+    markAllAsRead: () =>
+      apiClient.put('/notifications/all/read'),
+    delete: (notificationId: string) =>
+      apiClient.delete(`/notifications/${notificationId}`),
+  },
 };
 
 export default apiClient;

@@ -1,5 +1,6 @@
 import Comment from '../models/Comment.js';
 import Post from '../models/Post.js';
+import { createNotification } from './notificationController.js';
 
 // 添加评论
 export const addComment = async (req, res) => {
@@ -35,6 +36,9 @@ export const addComment = async (req, res) => {
 
     post.comments.push(comment._id);
     await post.save();
+
+    // 创建通知（通知帖子作者）
+    await createNotification(post.author, req.userId, 'comment', postId, comment._id);
 
     res.status(201).json({
       success: true,
@@ -148,6 +152,8 @@ export const toggleLikeComment = async (req, res) => {
     } else {
       // 未点赞，添加点赞
       comment.likes.push(userId);
+      // 创建通知（通知评论作者）
+      await createNotification(comment.author, userId, 'comment_like', comment.post, comment._id);
     }
 
     await comment.save();

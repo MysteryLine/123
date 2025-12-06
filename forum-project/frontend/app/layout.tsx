@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Navbar from '@/components/Navbar';
+import { LoadingProvider } from '@/components/LoadingContext';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -15,8 +16,10 @@ export default function RootLayout({
   return (
     <html lang="zh-CN">
       <body style={{ fontFamily: 'Arial, sans-serif', margin: 0, padding: 0 }}>
-        <Navbar />
-        {children}
+        <LoadingProvider>
+          <Navbar />
+          {children}
+        </LoadingProvider>
       </body>
     </html>
   );

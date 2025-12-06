@@ -113,24 +113,24 @@ export default function AvatarEditor({ onComplete, onCancel }: AvatarEditorProps
     };
 
     // 绘画事件处理
-  const handleDrawStart = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (mode !== 'draw') return;
-    setIsDrawing(true);
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+    const handleDrawStart = (e: React.MouseEvent<HTMLCanvasElement>) => {
+        if (mode !== 'draw') return;
+        setIsDrawing(true);
+        const canvas = canvasRef.current;
+        if (!canvas) return;
 
-    const rect = canvas.getBoundingClientRect();
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
-    const x = (e.clientX - rect.left) * scaleX;
-    const y = (e.clientY - rect.top) * scaleY;
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        const x = (e.clientX - rect.left) * scaleX;
+        const y = (e.clientY - rect.top) * scaleY;
 
-    const ctx = canvas.getContext('2d');
-    if (ctx) {
-      ctx.beginPath();
-      ctx.moveTo(x, y);
-    }
-  };    const handleDrawMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+        }
+    }; const handleDrawMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
         if (!isDrawing || mode !== 'draw') return;
         const canvas = canvasRef.current;
         if (!canvas) return;
@@ -231,13 +231,9 @@ export default function AvatarEditor({ onComplete, onCancel }: AvatarEditorProps
             setCropY(newY);
         } else if (dragMode === 'resize') {
             // 调整大小
-            const dx = x - dragStartX;
-            const dy = y - dragStartY;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-            const newRadius = Math.max(40, Math.min(150, cropRadius + distance * 0.3));
+            const distToCenter = Math.sqrt((x - cropX) ** 2 + (y - cropY) ** 2);
+            const newRadius = Math.max(40, Math.min(150, distToCenter));
             setCropRadius(newRadius);
-            setDragStartX(x);
-            setDragStartY(y);
         }
 
         // 重绘
@@ -254,9 +250,9 @@ export default function AvatarEditor({ onComplete, onCancel }: AvatarEditorProps
     // 完成裁剪
     const handleCompleteCrop = () => {
         const canvas = document.createElement('canvas');
-        const size = cropRadius * 2;
-        canvas.width = size;
-        canvas.height = size;
+        const finalSize = 120; // 固定输出大小
+        canvas.width = finalSize;
+        canvas.height = finalSize;
         const ctx = canvas.getContext('2d');
 
         if (ctx) {
@@ -264,18 +260,24 @@ export default function AvatarEditor({ onComplete, onCancel }: AvatarEditorProps
             img.onload = () => {
                 // 绘制圆形
                 ctx.beginPath();
-                ctx.arc(cropRadius, cropRadius, cropRadius, 0, Math.PI * 2);
+                ctx.arc(finalSize / 2, finalSize / 2, finalSize / 2, 0, Math.PI * 2);
                 ctx.clip();
 
                 // 绘制裁剪后的图片
                 const sourceX = cropX - cropRadius;
                 const sourceY = cropY - cropRadius;
+                const sourceSize = cropRadius * 2;
+
                 ctx.drawImage(
                     img,
-                    -sourceX,
-                    -sourceY,
-                    300,
-                    300
+                    sourceX,
+                    sourceY,
+                    sourceSize,
+                    sourceSize,
+                    0,
+                    0,
+                    finalSize,
+                    finalSize
                 );
 
                 const avatarBase64 = canvas.toDataURL('image/png', 0.9);

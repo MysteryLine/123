@@ -1,5 +1,6 @@
 import Post from '../models/Post.js';
 import Comment from '../models/Comment.js';
+import { createNotification } from './notificationController.js';
 
 // 获取用户的帖子
 export const getUserPosts = async (req, res) => {
@@ -246,6 +247,8 @@ export const toggleLikePost = async (req, res) => {
     } else {
       // 未点赞，添加点赞
       post.likes.push(userId);
+      // 创建通知（通知帖子作者）
+      await createNotification(post.author, userId, 'post_like', post._id);
     }
 
     await post.save();

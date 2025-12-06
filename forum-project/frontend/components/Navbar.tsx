@@ -4,6 +4,8 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Avatar from './Avatar';
+import NotificationBell from './NotificationBell';
+import LoadingLink from './LoadingLink';
 import { api } from '@/lib/apiClient';
 
 const Navbar: React.FC = () => {
@@ -52,7 +54,7 @@ const Navbar: React.FC = () => {
                 alignItems: 'center',
             }}>
                 {/* Logo */}
-                <Link href="/" style={{ textDecoration: 'none' }}>
+                <LoadingLink href="/" style={{ textDecoration: 'none' }}>
                     <div style={{
                         fontSize: '1.5rem',
                         fontWeight: 700,
@@ -61,43 +63,48 @@ const Navbar: React.FC = () => {
                     }}>
                         📝 论坛社区
                     </div>
-                </Link>
+                </LoadingLink>
 
                 {/* 导航链接 */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
-                    <Link href="/" style={{
+                    <LoadingLink href="/" style={{
                         textDecoration: 'none',
                         color: '#333',
                         fontWeight: 500,
                         transition: 'color 0.2s',
                     }}>
                         首页
-                    </Link>
-                    <Link href="/posts/create" style={{
+                    </LoadingLink>
+                    <LoadingLink href="/posts/create" style={{
                         textDecoration: 'none',
                         color: '#333',
                         fontWeight: 500,
                         transition: 'color 0.2s',
                     }}>
                         发帖
-                    </Link>
+                    </LoadingLink>
 
                     {user ? (
-                        <div style={{ position: 'relative' }}>
-                            <div
-                                onClick={() => setIsMenuOpen(!isMenuOpen)}
-                                style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '0.5rem',
-                                    cursor: 'pointer',
-                                }}
-                            >
-                                <Avatar
-                                    src={user.avatar}
-                                    username={user.username}
-                                    size="small"
-                                    editable={false}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                            {/* 通知铃铛 */}
+                            <NotificationBell />
+
+                            {/* 用户菜单 */}
+                            <div style={{ position: 'relative' }}>
+                                <div
+                                    onClick={() => setIsMenuOpen(!isMenuOpen)}
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.5rem',
+                                        cursor: 'pointer',
+                                    }}
+                                >
+                                    <Avatar
+                                        src={user.avatar}
+                                        username={user.username}
+                                        size="small"
+                                        editable={false}
                                 />
                                 <span style={{ fontWeight: 500, color: '#333' }}>{user.username}</span>
                                 <svg
@@ -111,65 +118,66 @@ const Navbar: React.FC = () => {
                                 </svg>
                             </div>
 
-                            {isMenuOpen && (
-                                <div style={{
-                                    position: 'absolute',
-                                    right: 0,
-                                    top: '100%',
-                                    marginTop: '0.5rem',
-                                    background: '#fff',
-                                    borderRadius: '8px',
-                                    boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
-                                    minWidth: '160px',
-                                    overflow: 'hidden',
-                                }}>
-                                    <Link href="/profile" style={{ textDecoration: 'none' }}>
-                                        <div style={{
-                                            padding: '0.75rem 1rem',
-                                            color: '#333',
-                                            cursor: 'pointer',
-                                            transition: 'background 0.2s',
-                                        }}
-                                            onMouseEnter={(e) => e.currentTarget.style.background = '#f5f5f5'}
+                                {isMenuOpen && (
+                                    <div style={{
+                                        position: 'absolute',
+                                        right: 0,
+                                        top: '100%',
+                                        marginTop: '0.5rem',
+                                        background: '#fff',
+                                        borderRadius: '8px',
+                                        boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
+                                        minWidth: '160px',
+                                        overflow: 'hidden',
+                                    }}>
+                                        <LoadingLink href="/profile" style={{ textDecoration: 'none' }}>
+                                            <div style={{
+                                                padding: '0.75rem 1rem',
+                                                color: '#333',
+                                                cursor: 'pointer',
+                                                transition: 'background 0.2s',
+                                            }}
+                                                onMouseEnter={(e) => e.currentTarget.style.background = '#f5f5f5'}
+                                                onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                                            >
+                                                👤 我的资料
+                                            </div>
+                                        </LoadingLink>
+                                        <LoadingLink href="/profile/avatar" style={{ textDecoration: 'none' }}>
+                                            <div style={{
+                                                padding: '0.75rem 1rem',
+                                                color: '#333',
+                                                cursor: 'pointer',
+                                                transition: 'background 0.2s',
+                                                borderTop: '1px solid #f0f0f0',
+                                            }}
+                                                onMouseEnter={(e) => e.currentTarget.style.background = '#f5f5f5'}
+                                                onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                                            >
+                                                🎨 编辑头像
+                                            </div>
+                                        </LoadingLink>
+                                        <div
+                                            onClick={handleLogout}
+                                            style={{
+                                                padding: '0.75rem 1rem',
+                                                color: '#e53e3e',
+                                                cursor: 'pointer',
+                                                transition: 'background 0.2s',
+                                                borderTop: '1px solid #f0f0f0',
+                                            }}
+                                            onMouseEnter={(e) => e.currentTarget.style.background = '#fff5f5'}
                                             onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                                         >
-                                            👤 我的资料
+                                            🚪 退出登录
                                         </div>
-                                    </Link>
-                                    <Link href="/profile/avatar" style={{ textDecoration: 'none' }}>
-                                        <div style={{
-                                            padding: '0.75rem 1rem',
-                                            color: '#333',
-                                            cursor: 'pointer',
-                                            transition: 'background 0.2s',
-                                            borderTop: '1px solid #f0f0f0',
-                                        }}
-                                            onMouseEnter={(e) => e.currentTarget.style.background = '#f5f5f5'}
-                                            onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-                                        >
-                                            🎨 编辑头像
-                                        </div>
-                                    </Link>
-                                    <div
-                                        onClick={handleLogout}
-                                        style={{
-                                            padding: '0.75rem 1rem',
-                                            color: '#e53e3e',
-                                            cursor: 'pointer',
-                                            transition: 'background 0.2s',
-                                            borderTop: '1px solid #f0f0f0',
-                                        }}
-                                        onMouseEnter={(e) => e.currentTarget.style.background = '#fff5f5'}
-                                        onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-                                    >
-                                        🚪 退出登录
                                     </div>
-                                </div>
-                            )}
+                                )}
+                            </div>
                         </div>
                     ) : (
                         <div style={{ display: 'flex', gap: '1rem' }}>
-                            <Link href="/login">
+                            <LoadingLink href="/login">
                                 <button style={{
                                     padding: '0.5rem 1rem',
                                     background: 'transparent',
@@ -181,8 +189,8 @@ const Navbar: React.FC = () => {
                                 }}>
                                     登录
                                 </button>
-                            </Link>
-                            <Link href="/register">
+                            </LoadingLink>
+                            <LoadingLink href="/register">
                                 <button style={{
                                     padding: '0.5rem 1rem',
                                     background: '#0ea5ff',
@@ -194,7 +202,7 @@ const Navbar: React.FC = () => {
                                 }}>
                                     注册
                                 </button>
-                            </Link>
+                            </LoadingLink>
                         </div>
                     )}
                 </div>
